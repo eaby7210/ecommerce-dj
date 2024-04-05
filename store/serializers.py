@@ -4,16 +4,23 @@ from rest_framework import serializers
 
 
 class CollectionDetailsSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Collection
         fields = ['id', 'title', 'products_count']
-
     products_count = serializers.IntegerField(read_only=True)
-class CollectionLinksSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Collection
-        collection_link=serializers.HyperlinkedModelSerializer()
-        fields=['title',collection_link]
+
+    
+# class CollectionLinksSerializer(serializers.Serializer):
+#     collection_link=serializers.HyperlinkedRelatedField(
+#             view_name='collection-detail',
+#             # queryset=Collection.objects.all(),
+#             lookup_field=id,
+#             read_only=True
+#         )
+#     title=serializers.CharField(max_length=255)
+#     class Meta:
+#         fields=['title','collection_link']
         
 
 

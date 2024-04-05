@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from djoser.serializers import UserSerializer
 from store.serializers import CollectionDetailsSerializer
 from store.models import Collection
+from django.db.models.aggregates import Count
 #from rest_framework.mixins.
 from rest_framework import status
 from .serializers import *
@@ -19,8 +20,8 @@ user=settings.AUTH_USER_MODEL
 @api_view(['GET'])
 def home(request):
     user_data="User is not authenticated."
-    collections = Collection.objects.all()
-    collection_serializer = CollectionDetailsSerializer(collections, many=True)
+    collections = Collection.objects.annotate(products_count=Count('products')).all()
+    collection_serializer = CollectionDetailsSerializer(collections,many=True)
     response_data = {
         'collections': collection_serializer.data,
         'users': user_data
