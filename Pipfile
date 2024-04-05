@@ -9,6 +9,9 @@ django-debug-toolbar = "*"
 psycopg2 = "*"
 django-rest-framework = "*"
 djangorestframework = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
+social-auth-app-django = "*"
 
 [dev-packages]
 

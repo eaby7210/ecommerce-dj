@@ -6,6 +6,7 @@ from .serializers import *
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 #from rest_framework.mixins.
 from rest_framework import status
 
@@ -126,5 +127,15 @@ def collection_list(request):
     
     
 #class ReviewSet(ModelViewSet)
+
+
+
+class CustomerViewSet(APIView):
+    def get(self,request):
+        pass
+    def post(self,request):
+        pass
+    def post(self,request):
+        pass
         
     

@@ -1,7 +1,8 @@
 from django.urls import path
 from . import views
+from django.urls import include
 
 # URLConf
 urlpatterns = [
-    path('products/', views.product_list)
+    path('', views.home),
 ]

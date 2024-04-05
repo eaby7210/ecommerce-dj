@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator,MaxValueValidator
 from django.db.models.functions import Coalesce
+from django.conf import settings
+from django.contrib import admin
 
 
 class Promotion(models.Model):
@@ -46,21 +48,25 @@ class Customer(models.Model):
         (MEMBERSHIP_GOLD, 'Gold'),
         (MEMBERSHIP_SILVER, 'Silver'),
         (MEMBERSHIP_BRONZE, 'Bronze'),
-        
-        
     ]
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=255)
+    
     birth_date = models.DateField(null=True)
     membership = models.CharField(
         max_length=1, choices=MEMBERSHIP_CHOICES, default=MEMBERSHIP_BRONZE)
+    wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    user =models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     
+    @admin.display(ordering='user__first_name')
+    def first_name(self):
+        return self.user.first_name
+    
+    @admin.display(ordering='user__last_name')
+    def last_name(self):
+        return self.user.last_name
     def __str__(self):
-        return self.first_name+" "+self.last_name
+        return self.user.first_name+" "+self.user.last_name
     class Meta:
-        ordering=['first_name','last_name' ]
+        ordering=['user__first_name','user__last_name' ]
 
 
 class Order(models.Model):
