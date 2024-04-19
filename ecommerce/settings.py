@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,9 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
-    # 'debug_toolbar',
-    'djoser',
+    'debug_toolbar',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'django_filters',
     'store',
     'myadmin',
     'core',
@@ -56,7 +63,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware'
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+     'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
@@ -64,11 +72,12 @@ ROOT_URLCONF = 'ecommerce.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'template')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
+                'store.context_processors.collection',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -129,7 +138,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS=[
+    BASE_DIR/'static'
+]
+MEDIA_URL='media/'
+MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -138,10 +152,30 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK={
     'COERCE_DECIMAL_TO_STRING':False,
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE':10,
 }
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'rest_framework_simplejwt.authentication.JWTAuthentication',
+)
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SITE_ID = 2
+LOGIN_REDIRECT_URL = '/'
+SOCIALACCOUNT_PROVIDERS={
+    'google':{
+        'SCOPE':[
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS':{
+            'access_types':'online',
+        }
+    }
+}
+
 
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
@@ -150,9 +184,21 @@ SIMPLE_JWT = {
 }
 AUTH_USER_MODEL= 'core.USER'
 
-DJOSER={
-    'SERIALIZERS':{
-        'user_create':'core.serializers.UserCreateSerializer',
-        'current_user':'core.serializers.UserSerializer'
-    }
-}
+# For password reset 
+ACCOUNT_EMAIL_REQUIRED = True 
+ACCOUNT_EMAIL_VERIFICATION = 'none' 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
+EMAIL_HOST = 'smtp.gmail.com' 
+EMAIL_PORT = 587 
+EMAIL_HOST_USER = '123arunbalakrishnan@gmail.com'  
+EMAIL_HOST_PASSWORD = "zygltiuakwpcdjdg" 
+EMAIL_USE_TLS = True 
+
+# DJOSER={
+#     'CREATE_SESSSION_ON_LOGIN':True,
+#     'SERIALIZERS':{
+#         'user_create':'core.serializers.UserCreateSerializer',
+#         'current_user':'core.serializers.UserSerializer'
+#     }
+# }

@@ -1,42 +1,67 @@
 from django.db import models
-from django.core.validators import MinValueValidator,MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.functions import Coalesce
 from django.conf import settings
 from django.contrib import admin
+from uuid import uuid4
 
 
-class Promotion(models.Model):
+class Discount(models.Model):
     description = models.CharField(max_length=255)
     discount = models.FloatField()
+    active = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+
+class Main_Category(models.Model):
+    title = models.CharField(max_length=100)
+    descriptions = models.TextField(default='Default Description')
+    img = models.ImageField(upload_to='store/categories', default='null', null=True, blank=True)
+    active = models.BooleanField(default=True)
+
+
+    def __str__(self):
+        return str(self.title)
+    class Meta:
+        ordering = ['title']
 
 
 class Collection(models.Model):
     title = models.CharField(max_length=255)
     featured_product = models.ForeignKey(
-        'Product', on_delete=models.SET_NULL, null=True, related_name='+')
+        'Product', on_delete=models.SET_NULL, null=True,blank=True, related_name='c_product')
+    img = models.ImageField(upload_to='store/collections', default='null', null=True, blank=True)
+    active = models.BooleanField(default=True)
     
     def __str__(self):
         return self.title
+
     class Meta:
-        ordering=['title']
-    
+        ordering = ['title']
 
 
 class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField()
-    description = models.TextField(null=True,blank=True)
-    unit_price = models.DecimalField(max_digits=6, decimal_places=2,validators=[MinValueValidator(1)])
+    description = models.TextField(null=True, blank=True)
+    unit_price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1)])
     inventory = models.IntegerField(validators=[MinValueValidator(0)])
     last_update = models.DateTimeField(auto_now=True)
-    collection = models.ForeignKey(Collection, on_delete=models.PROTECT,related_name='products')
-    promotions = models.ManyToManyField(Promotion,blank=True)
-    
+    active = models.BooleanField(default=False)
+    collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='collection_products')
+    category=models.ForeignKey(Main_Category,null=True,blank=True, on_delete=models.PROTECT, related_name='categories_products')
+    discount = models.ManyToManyField(Discount, blank=True)
+    rating = models.DecimalField(max_digits=2, decimal_places=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
+
     def __str__(self):
         return self.title
-    
+
     class Meta:
-        ordering=['title']
+        ordering = ['title']
+class ProductImage(models.Model):
+    product=models.ForeignKey(Product,on_delete=models.CASCADE,related_name='images')
+    image=models.ImageField(upload_to='store/images')
+    
 
 
 class Customer(models.Model):
@@ -49,24 +74,33 @@ class Customer(models.Model):
         (MEMBERSHIP_SILVER, 'Silver'),
         (MEMBERSHIP_BRONZE, 'Bronze'),
     ]
-    
+
     birth_date = models.DateField(null=True)
     membership = models.CharField(
         max_length=1, choices=MEMBERSHIP_CHOICES, default=MEMBERSHIP_BRONZE)
-    wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    user =models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
-    
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
+
     @admin.display(ordering='user__first_name')
     def first_name(self):
         return self.user.first_name
-    
+
     @admin.display(ordering='user__last_name')
     def last_name(self):
         return self.user.last_name
+
     def __str__(self):
-        return self.user.first_name+" "+self.user.last_name
+        return self.user.first_name + " " + self.user.last_name
+
     class Meta:
-        ordering=['user__first_name','user__last_name' ]
+        ordering = ['user__first_name', 'user__last_name']
+        
+class Wallet(models.Model):
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer.user.username}'s Wallet"
 
 
 class Order(models.Model):
@@ -82,12 +116,12 @@ class Order(models.Model):
     placed_at = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(
         max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='o_customer')
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.PROTECT)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT,related_name="orderitems")
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='order')
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orderitems")
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
 
@@ -99,20 +133,20 @@ class Address(models.Model):
         Customer, on_delete=models.CASCADE)
 
 
-class Cart(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
     quantity = models.PositiveSmallIntegerField()
-    
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='cart_customer')
+
+    class Meta:
+        unique_together = [['product', 'user']]
+
+
 class Review(models.Model):
-    product=models.ForeignKey(Product,on_delete=models.CASCADE)
-    name=models.CharField(max_length=255)
-    description=models.TextField()
-    date=models.DateField(auto_now_add=True)
-    rating=models.DecimalField(max_digits=2,decimal_places=1,validators=[MinValueValidator(1),MaxValueValidator(5)])
-    
-    
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='r_product')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='r_customer')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    date = models.DateField(auto_now_add=True)
+    rating = models.DecimalField(max_digits=2, decimal_places=1, validators=[MinValueValidator(1), MaxValueValidator(5)])

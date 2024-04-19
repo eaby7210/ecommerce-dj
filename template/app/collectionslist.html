@@ -1,0 +1,76 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+
+{% block content %}
+
+
+<div class="container">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}"> Home</a></li>
+            <li class="breadcrumb-item active">Collection List</li>
+        </ul>
+    </nav>
+</div>
+
+
+<section class="home-cards grid container my-6">
+    <h1 class="h1 row font-monospace">Collections</h1>
+    <div class="d-flex justify-content-between">
+        {% if previous %}
+        <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
+        {% else %}
+        <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
+        {% endif %}
+        <p>{{page_number}}/{{total_pages}}</p>
+
+        {% if next %}
+        <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
+        {% else %}
+        <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
+        {% endif %}
+    </div>
+
+
+    <div class="row ">
+
+        {% for item in results %}
+
+
+        <div class="card col-lg-3 col-sm-6 m-3">
+            <img class="card-img-top img-fluid" src="{{item.img}}" alt="product pic here">
+            <div class="card-body">
+                <h3>{{item.title}}</h3>
+            </div>
+
+            <div class="card-body">
+                <a href="">Learn more <i class="fa fa-thin fa-chevron-right"></i></a>
+            </div>
+        </div>
+        {% if forloop.counter|divisibleby:3 %}
+    </div>
+    <div class="row">
+
+        {% endif %}
+        {% endfor %}
+
+
+        <div class="d-flex justify-content-between">
+            {% if previous %}
+            <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
+            {% else %}
+            <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
+            {% endif %}
+            <p>{{page_number}}/{{total_pages}}</p>
+
+            {% if next %}
+            <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
+            {% else %}
+            <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
+            {% endif %}
+        </div>
+
+
+</section>
+
+{% endblock content %}

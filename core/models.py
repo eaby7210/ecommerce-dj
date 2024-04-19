@@ -14,4 +14,5 @@ class User(AbstractUser):
         ]
     )
     email=models.EmailField(unique=True, max_length=254)
+    active=models.BooleanField(default=False)
     

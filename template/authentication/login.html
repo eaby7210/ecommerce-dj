@@ -1,0 +1,38 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block menu %}
+<div class="offcanvas-body d-flex justify-content-end">
+    <div class="user-items d-flex">
+        <ul class="d-flex justify-content-end list-unstyled mb-0">
+
+            {% include "nav-menu.html" %}
+
+        </ul>
+    </div>
+</div>
+{% endblock menu %}
+<!-- ========== Start Login ========== -->
+{% block content %}
+
+
+<div class="login-box container">
+    <div class="card myCard text-center container">
+        <h2 class="card-header text-center mb-3">Login</h2>
+
+        <form class="d-grid gap-4 p-3" method="post" action="{%url 'login'%}">
+            {% csrf_token %}
+            {% render_form serializer %}
+
+            <button type="submit" class="btn btn-outline-warning btn-block">
+                Login
+            </button>
+        </form>
+        {% for message in messages %}
+        <p class="form-text card-footer text-center text-danger display-3">
+            {{message}}
+        </p>
+        {% endfor %}
+    </div>
+</div>
+<!-- ========== End Login ========== -->
+{% endblock content %}

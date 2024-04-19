@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+
+{% block menu %}
+<div class="offcanvas-body d-flex justify-content-end">
+    <div class="user-items d-flex">
+        <ul class="d-flex justify-content-end list-unstyled mb-0">
+
+            {% include "nav-menu.html" %}
+
+        </ul>
+    </div>
+</div>
+{% endblock menu %}
+{% block content %}
+<!-- ========== Start Signup ========== -->
+<div class="signup-box container py-5">
+    <div class="card myCard text-center container">
+        <h2 class="card-header text-center mb-3">Signup</h2>
+
+        <form class="form-horizontal d-grid gap-4 p-3" method="post" action="{%url 'signup'%}" novalidate>
+            {% csrf_token %}
+            {% render_form serializer %}
+
+            <button type="submit" class="btn btn-outline-success btn-block">
+                Signup
+            </button>
+        </form>
+        {% for message in messages %}
+        <p class="form-text card-footer text-center text-danger display-3">
+            {{message}}
+        </p>
+        {% endfor %}
+    </div>
+</div>
+<!-- ========== End Signup ========== -->
+
+
+{% endblock content %}

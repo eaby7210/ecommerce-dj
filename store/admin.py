@@ -25,6 +25,14 @@ class InventoryFilter(admin.SimpleListFilter):
         elif self.value() == '<10':
             return queryset.filter(inventory__lt=10)
 
+class ProductImageInline(admin.TabularInline):
+    model = models.ProductImage
+    readonly_fields = ['thumbnail']
+
+    def thumbnail(self, instance):
+        if instance.image.name != '':
+            return format_html(f'<img src="{instance.image.url}" class="thumbnail" />')
+        return ''
 
 
 @admin.register(models.Product)
@@ -34,10 +42,11 @@ class ProductAdmin(admin.ModelAdmin):
     }
     search_fields=['title']
     actions=['clear_inventory']
+    inlines = [ProductImageInline]
     autocomplete_fields=['collection']
     list_display=['title','unit_price','inventory_status','collection_title']
     list_editable=['unit_price']
-    list_filter=['collection','last_update',InventoryFilter]
+    list_filter=['category','collection','last_update',InventoryFilter]
     list_per_page=10
     list_select_related=['collection']
     
@@ -56,6 +65,11 @@ class ProductAdmin(admin.ModelAdmin):
     def clear_inventory(self,request,queryset):
         updated_count=queryset.update(inventory=0)
         self.message_user(request,f'{updated_count} Products were successfully updated',messages.INFO)
+        
+    class Media:
+        css = {
+            'all': ['store/styles.css']
+        }
         
             
     
@@ -85,7 +99,25 @@ class CollectionAdmin(admin.ModelAdmin):
             )
         return format_html('<a href="{}">{}</a>',url,collection.products_count)
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).annotate(products_count=Count('products'))
+        return super().get_queryset(request).annotate(products_count=Count('collection_products'))
+    
+@admin.register(models.Main_Category)
+class Main_CategoryAdmin(admin.ModelAdmin):
+    list_display=['title','products_count']
+    search_fields=['title']
+    
+    @admin.display(ordering='products_count')
+    def products_count(self,collection):
+        url=(
+            reverse('admin:store_product_changelist')+
+            '?'+
+            urlencode({
+                'collection__id':str(collection.id)
+                })
+            )
+        return format_html('<a href="{}">{}</a>',url,collection.products_count)
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(products_count=Count('categories_products'))
 
 class OrderItemInline(admin.TabularInline):
     extra=1
