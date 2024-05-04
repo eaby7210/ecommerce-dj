@@ -1,12 +1,11 @@
 {% load socialaccount %}
 <li class="pe-3">
-    {% if user.is_authenticated and user.is_staff%}
-    <!-- logo for staff -->
     <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">
         <svg class="user">
             <use xlink:href="#user"></use>
         </svg>
     </a>
+    {% if user.is_authenticated and user.is_staff%}
     <!-- admin -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -30,10 +29,10 @@
                             <!-- log in tab -->
                             <div class="tab-pane fade active show" id="nav-sign-in" role="tabpanel"
                                 aria-labelledby="nav-sign-in-tab">
-                                <a href="" name="log in credentials" class="btn btn-dark w-100 my-3"><i
+                                <a href="{%url 'profile'%}" name="log in credentials" class="btn btn-dark w-100 my-3"><i
                                         class="fa-solid fa-key"></i> User Profile</a>
-                                <a href="" name="log in credentials" class="btn btn-dark w-100 my-3"><i
-                                        class="fa-solid fa-envelope"></i> Admin Panel</a>
+                                <a href="{%url 'dashboard'%}" name="log in credentials"
+                                    class="btn btn-dark w-100 my-3"><i class="fa-solid fa-envelope"></i> Admin Panel</a>
                                 <a href="{%url 'logout'%}" name="log in credentials" class="btn btn-dark w-100 my-3"><i
                                         class="fa-solid fa-envelope"></i> Log Out</a>
                                 <!-- Social login button here -->
@@ -46,12 +45,7 @@
     </div>
     {% else %}
     {% if user.is_authenticated%}
-    <!-- logo for user -->
-    <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        <svg class="user">
-            <use xlink:href="#user"></use>
-        </svg>
-    </a>
+    <!--  for user -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -71,7 +65,7 @@
                             <!-- log in tab -->
                             <div class="tab-pane fade active show" id="nav-sign-in" role="tabpanel"
                                 aria-labelledby="nav-sign-in-tab">
-                                <a href="" name="log in credentials" class="btn btn-dark w-100 my-3"><i
+                                <a href="{%url 'profile'%}" name="log in credentials" class="btn btn-dark w-100 my-3"><i
                                         class="fa-solid fa-key"></i> User Profile</a>
                                 <a href="{%url 'logout'%}" name="log in credentials" class="btn btn-dark w-100 my-3"><i
                                         class="fa-solid fa-envelope"></i> Log Out</a>
@@ -85,12 +79,8 @@
     </div>
 
     {% else %}
-    <!-- logo for guests -->
-    <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        <svg class="user">
-            <use xlink:href="#user"></use>
-        </svg>
-    </a>
+    <!--for guests -->
+
     <!-- Modal sign in or register -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -117,9 +107,9 @@
                                 <a href="{% url 'login' %}" name="log in credentials" class="btn btn-dark w-100 my-3"><i
                                         class="fa-solid fa-key"></i> Login with
                                     Credetials</a>
-                                <a href="{% url 'login' %}?type=otp" name="log in credentials"
+                                <!-- <a href="{% url 'login' %}?type=otp" name="log in credentials"
                                     class="btn btn-dark w-100 my-3"><i class="fa-solid fa-envelope"></i> LogIn with
-                                    Otp</a>
+                                    Otp</a> -->
                                 <a href="{% provider_login_url 'google' %}" name="Goole login"
                                     class="btn btn-dark w-100 my-3"><i class="fa-solid fa-envelope"></i> LogIn with
                                     Google</a>
@@ -191,15 +181,16 @@
         </div>
     </div>
 </li>
-<li class="cart-dropdown dropdown">
+<li class="">
 
 
-    <a href="cart.html" class="dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
-        <svg class="cart">
+    <a href="{%url 'u-cart-list'%}" class="d-flex flex-row justify-content-center icon-link icon-link-hover"
+        style="--bs-icon-link-transform: translate3d(.125rem, .225rem, 0);">
+        <svg class="cart bi" aria-hidden="true">
             <use xlink:href="#cart"></use>
-        </svg><span class="fs-6 fw-light">(02)</span>
+        </svg><span class="badge bg-primary text-white rounded-pill">2</span>
     </a>
-    <div class="dropdown-menu animate slide dropdown-menu-start dropdown-menu-lg-end p-3">
+    <!-- <div class="dropdown-menu animate slide dropdown-menu-start dropdown-menu-lg-end p-3">
         <h4 class="d-flex justify-content-between align-items-center mb-3">
             <span class="text-primary">Your cart</span>
             <span class="badge bg-primary rounded-pill">2</span>
@@ -236,7 +227,7 @@
             <a href="cart.html" class="w-100 btn btn-dark mb-1" type="submit">View Cart</a>
             <a href="checkout.html" class="w-100 btn btn-primary" type="submit">Go to checkout</a>
         </div>
-    </div>
+    </div> -->
 </li>
 {% endif %}
 

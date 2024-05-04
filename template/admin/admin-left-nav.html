@@ -1,0 +1,56 @@
+{% load socialaccount %}
+<li class="pe-3">
+    <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        <svg class="user">
+            <use xlink:href="#user"></use>
+        </svg>
+    </a>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="tabs-listing">
+                        <nav>
+                            <div class="nav nav-tabs d-flex justify-content-center" id="nav-tab" role="tablist">
+
+
+
+                                <button class="nav-link text-uppercase active" id="nav-sign-in-tab" data-bs-toggle="tab"
+                                    data-bs-target="#nav-sign-in" type="button" role="tab" aria-controls="nav-sign-in"
+                                    aria-selected="true">{{user.username}} ({{customer.membership}})</button>
+                            </div>
+                        </nav>
+                        <div class="tab-content" id="nav-tabContent">
+                            <!-- log in tab -->
+                            <div class="tab-pane fade active show" id="nav-sign-in" role="tabpanel"
+                                aria-labelledby="nav-sign-in-tab">
+                                <a href="" name="log in credentials" class="btn btn-dark w-100 my-3"><i
+                                        class="fa-solid fa-key"></i> User Profile</a>
+                                <a href="" name="log in credentials" class="btn btn-dark w-100 my-3"><i
+                                        class="fa-solid fa-envelope"></i> Admin Panel</a>
+                                <a href="{%url 'logout'%}" name="log in credentials" class="btn btn-dark w-100 my-3"><i
+                                        class="fa-solid fa-envelope"></i> Log Out</a>
+                                <!-- Social login button here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</li>
+
+
+
+
+
+
+
+<!-- user option -->

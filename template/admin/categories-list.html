@@ -1,0 +1,97 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block menu %}
+{% include "admin/admin-nav.html" %}
+{% endblock menu %}
+
+{% block content %}
+
+<details class="container my-3">
+    <summary class="h4">Add Category</summary>
+    <div id="action-bar" class="container row justify-content-center">
+        <div class="col-8">
+            <form action="{%url 'main_category-list'%}" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {% render_form serializer %}
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                </div>
+            </form>
+        </div>
+</details>
+<!-- <button type="button" class="btn btn-success col-2 add-button" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add
+    </button> -->
+
+<details class="container" open>
+    <summary class="h4">Category List</summary>
+    <table class="table container">
+        <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Title</th>
+                <th scope="col">Products count</th>
+                <th scope="col">Active</th>
+                <th scope="col">Actions</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in results%}
+            <tr>
+
+
+
+                <th scope="row">{{category.id}}</th>
+                <td>{{category.title|capfirst}}</td>
+                <td>{{category.products_count}}</td>
+                <td>{{category.active}}</td>
+
+                <td class="row justify-content-around">
+                    <a href="{%url 'main_category-detail' pk=category.id%}"
+                        class="btn btn-outline-secondary p-2 col-5 fs-6">
+                        Edit</a>
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+
+
+
+
+
+
+
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const detailsElements = document.querySelectorAll('details');
+
+
+
+        detailsElements.forEach(details => {
+            details.addEventListener('toggle', function (event) {
+                detailsElements.forEach(otherDetails => {
+                    if (otherDetails !== this) {
+                        otherDetails.removeAttribute('open'); // Close other details
+
+                    }
+                });
+            });
+        });
+    });
+
+
+
+
+
+
+</script>
+{% endblock content %}

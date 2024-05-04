@@ -1,0 +1,78 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+
+{% block content %}
+
+
+<div class="container">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}"> Home</a></li>
+            <li class="breadcrumb-item active"><a href="{%url 'u-brand-list'%}">Brands List</a></li>
+            <li class="breadcrumb-item active">Brand Details</li>
+        </ul>
+    </nav>
+</div>
+
+
+<main class="cd__main">
+    <!-- Start DEMO HTML (Use the following code into your project)-->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="main-img">
+                    <img class="img-fluid" src="{{img}}" alt="brandimg">
+
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="main-description px-2">
+
+                    <div class="product-title text-bold my-3">
+                        <h2>{{title}}</h2>
+                    </div>
+
+
+                    <div class="price-area my-4">
+                        <!-- <p class="old-price mb-1"><del>${}}</del> <span class="old-price-discount text-danger">(20%
+                                off)</span></p> -->
+                        <p class="new-price text-bold mb-1">Provides {{products_count}} products</p>
+
+                    </div>
+
+
+                    <div class="buttons d-grid my-5 ">
+                        <div class="row justify-content-between">
+                            <a href="#" class="shadow btn custom-btn col-4">Show Products</a>
+                            <button class="shadow btn custom-btn col-4">Contact</button>
+
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+
+                <div class="product-details my-4">
+                    <p class="details-title text-color mb-1">Brand Details</p>
+                    <p class="description">{{description}}</p>
+                </div>
+
+                <div class="row questions bg-light p-3">
+                    <div class="col-md-1 icon">
+                        <i class="fa-brands fa-rocketchat questions-icon"></i>
+                    </div>
+                    <div class="col-md-11 text">
+                        Have a question about our products at E-Store? Feel free to contact our representatives via
+                        live chat or email.
+                    </div>
+                </div>
+
+
+
+
+            </div>
+        </div>
+    </div>
+    {% endblock content%}

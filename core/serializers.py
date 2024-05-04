@@ -11,8 +11,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(required=True, write_only=True)
     last_name = serializers.CharField(required=True, write_only=True)
     email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
-    password1 = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
+    password1 = serializers.CharField(style={'input_type': 'password'},write_only=True)
+    password2 = serializers.CharField(style={'input_type': 'password'},write_only=True)
     
     phone = serializers.RegexField(
         regex=r'^\d{10}$', 
@@ -41,7 +41,6 @@ class RegisterSerializer(serializers.ModelSerializer):
                 )
         return email
 
-
     def validate(self, data):
         if data['password1'] != data['password2']:
             raise serializers.ValidationError({'password2':"The two password fields didn't match."})
@@ -49,6 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def custom_signup(self, request, user):
         pass
+    
     def user_data(self,request):
         user=User.objects.create_user(
             phone=self.validated_data['phone'],
@@ -66,12 +66,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField(style={'input_type': 'password'})
+    password = serializers.CharField(style={'input_type': 'password'},write_only=True)
         
         
 class UserSerializer(serializers.ModelSerializer):
-    
+    password=serializers.CharField(style={'input_type': 'password'},write_only=True)
     class Meta():
         model=User
-        fields=['id','first_name','last_name','username','email','phone']
+        fields=['id','first_name','last_name','username','email','phone','is_active','is_staff','password']
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta():
+        model=User
+        fields=['id','first_name','last_name','username','email','phone','is_active','is_staff']
         

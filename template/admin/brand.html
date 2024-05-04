@@ -1,0 +1,71 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block menu %}
+{% include "admin/admin-nav.html" %}
+{% endblock menu %}
+
+{% block content %}
+
+
+
+<section id="list-section" class="container my-3">
+    {% include "admin/brand-list.html" %}
+</section>
+
+</div>
+<br />
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Delete User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure to delete the User
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                <form class="" method="POST" action="">
+                    {% csrf_token %}
+                    <input style="display: none" name="u_id" id="user_id" readonly />
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!------ Modals ------>
+
+
+
+
+
+<script>
+
+
+    const deleteModal = document.getElementById('deleteModal')
+    const blockModal = document.getElementById('blockModal')
+    const unblockModal = document.getElementById('unblockModal')
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const userid = button.getAttribute('data-bs-userid')
+            const username = button.getAttribute('data-bs-username')
+            const modalTitle = deleteModal.querySelector('.modal-title')
+            const modalBodyInput = deleteModal.querySelector('#user_id')
+            const modalmsg = deleteModal.querySelector('.modal-body')
+
+            modalTitle.textContent = `Delete user ${userid}`
+            modalmsg.textContent = `Are u sure to DELETE ${username}`
+        })
+    }
+
+
+
+
+</script>
+{% endblock content %}

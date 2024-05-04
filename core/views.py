@@ -4,15 +4,14 @@ from django.contrib.sessions.models import Session
 from django.contrib import auth
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
-# from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.renderers import TemplateHTMLRenderer
-
+from rest_framework.renderers import TemplateHTMLRenderer,HTMLFormRenderer
+from .permission import *
 from rest_framework_simplejwt.tokens import RefreshToken
-from store.serializers import CollectionDetailsSerializer
-from store.models import Collection,Customer
+from store.serializers import BrandDetailsSerializer,CustomerSerializer
+from store.models import Brand,Customer
 from django.db.models.aggregates import Count
 from rest_framework import status
 from .serializers import *
@@ -31,6 +30,10 @@ class SignupAPIView(APIView):
             context={
                 "serializer":serializer
             }
+            print(context)
+            for field in serializer.fields:
+                print("label:",field)
+                print("field:",serializer.fields[field])
             return Response(context,template_name='authentication/signup.html',content_type='text/html')
     
     def post(self, request, *args, **kwargs):
@@ -73,11 +76,20 @@ class LoginAPIView(APIView):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = auth.authenticate(request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
-        if user is not None:
-            print(user)
+        # print(user.is_active,user.is_staff)
+        if bool(user and user.is_staff):
+            auth.login(request,user)
+            messages.info(request,message='Logged in as admin succesfully')
+            return redirect('dashboard')
+        elif bool(user and user.is_active):
+            print("admin:")
             auth.login(request,user)
             messages.info(request,message='Logged in succesfully')
             return redirect('/')
+        elif bool(user and not user.is_active):
+            messages.info(request,message='User is Blocked by Admin')
+            return Response({'serializer':serializer,'error': 'User is Blocked by Admin'},template_name='authentication/login.html',content_type='text/html')
+        
         else:
             messages.error(request,'Invalid credentials')
             
@@ -104,138 +116,29 @@ class HomePageView(APIView):
             else:
                 customer,created=Customer.objects.prefetch_related('user').get_or_create(user_id=user.id)
                 if created:
-                    messages.info(f"{user.username}'s profile is created as Bronze Membership")
-            print("customer: ",customer.membership)
+                    messages.info(request,f"{user.username}'s profile is created as Bronze Membership")
+            print("customer: ",customer.user)
             context={
                 "customer":customer,
             }
             return Response(context,template_name='app/home.html',content_type='text/html')
         return Response(template_name='app/home.html',content_type='text/html')
-
-
-# @api_view(['GET'])
-# def home(request):
-#     user_data="User is not authenticated."
-#     collections = Collection.objects.annotate(products_count=Count('products')).all()
-#     collection_serializer = CollectionDetailsSerializer(collections,many=True)
-#     response_data = {
-#         'collections': collection_serializer.data,
-#         'users': user_data
-#     }
-#     if request.user.is_authenticated:
-        
-#         user_data=UserSerializer(request.user)
-#         response_data = {
-#         'collections': collection_serializer.data,
-#         'users': user_data.data
-#     }
-#         return Response(response_data)
-        
-        
     
-#     return Response(response_data)
-# @api_view(['GET','POST'])
-# def signup(request):
-#     if request.method=='POST':
-#         serializer=UserRegisterSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response("ok",status=status.HTTP_201_CREATED)
-#         else:
-#             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-#     elif request.method=='GET':
-#         return Response("ok")
+class ProfileAPIView(APIView):
+    permission_classes=[IsActive]
+    renderer_classes=[TemplateHTMLRenderer]
+    def get(self, request):
+        customer=Customer.objects.prefetch_related('user').get(user_id=request.user.id)
+        serializer=CustomerSerializer(customer)
         
+        context={
+            'serializer':serializer,
+            'customer':serializer.data,
+            'member_text':customer.get_membership_display()
+        }
+        print("context",context)
+        return Response(context,template_name="authentication/profile.html",content_type="text/html")
+    def post(self,request):
+        pass
 
 
-
-# def signup(request):
-#     if request.method=='POST':
-#         fname=request.POST['firstName'].strip()
-#         lname=request.POST['lastName'].strip()
-#         username=request.POST['userName'].strip()
-#         email=request.POST['email'].strip()
-#         pass1=request.POST['password'].strip()
-#         pass2=request.POST['confirmPassword'].strip()
-#         print((fname,lname,username,email,pass1,pass2))
-#         check=any(not field for field in (fname, lname, username, email, pass1, pass2))
-#         print(check)
-#         if check:
-#             messages.info(request,'All feilds must be filled correctly')
-#             return render(request,'authentication/signup.html')
-            
-#         else:
-#             if pass1==pass2:
-#                 if User.objects.filter(username=username).exists():
-#                     messages.info(request,'Username already taken')
-#                     return render(request,'authentication/signup.html')
-#                 elif User.objects.filter(email=email).exists():
-#                     messages.info(request,'Email is already taken')
-#                     return render(request,'authentication/signup.html')
-#                 else:
-#                     user=User.objects.create_user(
-#                         first_name=fname,
-#                         last_name=lname,
-#                         username=username,
-#                         email=email,
-#                         password=pass1,   
-#                     )
-#                     user.save()
-#                     user=auth.authenticate(username=username,password=pass1)
-#                     if user is not None:
-#                         request.session['user_var']=username
-#                         auth.login(request,user)
-#                         messages.success(request,'Registration succesfull')
-#                         return redirect('/')
-#                     else:
-#                         messages.error(request,'Error while authenticate, try login again')
-#                         return render(request,'authentication/login.html')
-                    
-#             else:
-#                 messages.info(request,'password do not match')
-#                 return render(request,'authentication/signup.html')
-            
-        
-    
-    
-#     else:
-#         if request.user.is_authenticated:
-#             messages.info(request,"Logout to signup")
-#             return redirect('/')
-#         else:
-#             return render(request,'authentication/signup.html')
-
-
-
-# def login(request):
-#     if request.method=='POST':
-#         username=request.POST['username'].strip()
-#         password=request.POST['password'].strip()
-#         if username=='' or password=='':
-#             messages.info(request,'All feild must be filled')
-#             return render(request,'authentication/login.html')
-#         else:
-#             user=auth.authenticate(username=username,password=password)
-#             if user is not None:
-#                 auth.login(request,user)
-#                 request.session['user_var']=username
-#                 response=redirect('/')
-#                 response.set_cookie('user_cookie',username,max_age=3600)
-#                 return response
-#             else:
-#                 messages.info(request,'Invalid username or password')
-#                 return render(request,'authentication/login.html')
-#     else:
-#         if request.user.is_authenticated:
-#             messages.info(request,"Logout to Login")
-#             return redirect('/')
-#         else:
-#             return render(request,'authentication/login.html')
-    
-# def logout(request):
-#     if 'user_var' in request.session:
-#         del request.session['user_var']
-#     response=redirect('/')
-#     response.delete_cookie('user_cookie')
-#     auth.logout(request)
-#     return response

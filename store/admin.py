@@ -43,15 +43,15 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields=['title']
     actions=['clear_inventory']
     inlines = [ProductImageInline]
-    autocomplete_fields=['collection']
-    list_display=['title','unit_price','inventory_status','collection_title']
+    autocomplete_fields=['brand']
+    list_display=['title','unit_price','inventory_status','brand_title']
     list_editable=['unit_price']
-    list_filter=['category','collection','last_update',InventoryFilter]
+    list_filter=['category','brand','last_update',InventoryFilter]
     list_per_page=10
-    list_select_related=['collection']
+    list_select_related=['brand']
     
-    def collection_title(self,product):
-        return product.collection.title
+    def brand_title(self,product):
+        return product.brand.title
     
     @admin.display(ordering='inventory')
     def inventory_status(self,product):
@@ -83,23 +83,23 @@ class CustomerAdmin(admin.ModelAdmin):
     search_fields=['first_name__istartswith','last_name__istartswith']
     
     
-@admin.register(models.Collection)
-class CollectionAdmin(admin.ModelAdmin):
+@admin.register(models.Brand)
+class BrandAdmin(admin.ModelAdmin):
     list_display=['title','products_count']
     search_fields=['title']
     
     @admin.display(ordering='products_count')
-    def products_count(self,collection):
+    def products_count(self,brand):
         url=(
             reverse('admin:store_product_changelist')+
             '?'+
             urlencode({
-                'collection__id':str(collection.id)
+                'brand__id':str(brand.id)
                 })
             )
-        return format_html('<a href="{}">{}</a>',url,collection.products_count)
+        return format_html('<a href="{}">{}</a>',url,brand.products_count)
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).annotate(products_count=Count('collection_products'))
+        return super().get_queryset(request).annotate(products_count=Count('brand_products'))
     
 @admin.register(models.Main_Category)
 class Main_CategoryAdmin(admin.ModelAdmin):
@@ -107,15 +107,15 @@ class Main_CategoryAdmin(admin.ModelAdmin):
     search_fields=['title']
     
     @admin.display(ordering='products_count')
-    def products_count(self,collection):
+    def products_count(self,brand):
         url=(
             reverse('admin:store_product_changelist')+
             '?'+
             urlencode({
-                'collection__id':str(collection.id)
+                'brand__id':str(brand.id)
                 })
             )
-        return format_html('<a href="{}">{}</a>',url,collection.products_count)
+        return format_html('<a href="{}">{}</a>',url,brand.products_count)
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(products_count=Count('categories_products'))
 

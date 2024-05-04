@@ -1,0 +1,133 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block menu %}
+{% include "admin/admin-nav.html" %}
+{% endblock menu %}
+
+{% block content %}
+
+
+<div id="action-bar" class="container-fluid row justify-content-between">
+    <div class="col-8"></div>
+    <button type="button" class="btn btn-success col-2 add-button" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add User
+    </button>
+
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Username</th>
+            <th scope="col">Member</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Is Active</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users%}
+        <tr>
+
+
+
+            <th scope="row">{{user.id}}</th>
+            <td>{{user.user.first_name|capfirst}} {{user.user.last_name|capfirst}}</td>
+            <td>{{user.user.email}}</td>
+            <td>{{user.user.username}}</td>
+            {% if user.user.is_staff %}
+            <td>{{user.membership}} (admin)</td>
+            {%else%}
+            <td>{{user.membership}}</td>
+            {% endif %}
+            <td>{{user.user.phone}}</td>
+            <td>{{user.user.is_active}}</td>
+            <td class="row justify-content-around">
+                <a href="{%url 'admin-users-detail' pk=user.id%}" class="btn btn-outline-secondary p-2 col-5 fs-6">
+                    Edit</a>
+
+
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</div>
+<br />
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Delete User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure to delete the User
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                <form class="" method="POST" action="">
+                    {% csrf_token %}
+                    <input style="display: none" name="u_id" id="user_id" readonly />
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!------ Modals ------>
+<!-- add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="userAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content ">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Add User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{%url 'admin-users-list'%}" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {% render_form serializer %}
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+
+
+    const deleteModal = document.getElementById('deleteModal')
+    const blockModal = document.getElementById('blockModal')
+    const unblockModal = document.getElementById('unblockModal')
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const userid = button.getAttribute('data-bs-userid')
+            const username = button.getAttribute('data-bs-username')
+            const modalTitle = deleteModal.querySelector('.modal-title')
+            const modalBodyInput = deleteModal.querySelector('#user_id')
+            const modalmsg = deleteModal.querySelector('.modal-body')
+
+            modalTitle.textContent = `Delete user ${userid}`
+            modalmsg.textContent = `Are u sure to DELETE ${username}`
+        })
+    }
+
+
+
+
+</script>
+{% endblock content %}

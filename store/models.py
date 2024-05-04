@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator,RegexValidator
 from django.db.models.functions import Coalesce
 from django.conf import settings
 from django.contrib import admin
@@ -15,9 +15,10 @@ class Discount(models.Model):
 
 class Main_Category(models.Model):
     title = models.CharField(max_length=100)
-    descriptions = models.TextField(default='Default Description')
+    description = models.TextField(default='Default Description')
     img = models.ImageField(upload_to='store/categories', default='null', null=True, blank=True)
-    active = models.BooleanField(default=True)
+    description = models.TextField(null=True, blank=True)
+    active = models.BooleanField(default=False)
 
 
     def __str__(self):
@@ -26,12 +27,13 @@ class Main_Category(models.Model):
         ordering = ['title']
 
 
-class Collection(models.Model):
+class Brand(models.Model):
     title = models.CharField(max_length=255)
     featured_product = models.ForeignKey(
-        'Product', on_delete=models.SET_NULL, null=True,blank=True, related_name='c_product')
+        'Product', on_delete=models.SET_NULL, null=True,blank=True, related_name='f_product')
     img = models.ImageField(upload_to='store/collections', default='null', null=True, blank=True)
-    active = models.BooleanField(default=True)
+    description = models.TextField(default='Default Description',null=True, blank=True)
+    active = models.BooleanField(default=False)
     
     def __str__(self):
         return self.title
@@ -48,7 +50,7 @@ class Product(models.Model):
     inventory = models.IntegerField(validators=[MinValueValidator(0)])
     last_update = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=False)
-    collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='collection_products')
+    brand = models.ForeignKey(Brand, on_delete=models.PROTECT, related_name='brand_products')
     category=models.ForeignKey(Main_Category,null=True,blank=True, on_delete=models.PROTECT, related_name='categories_products')
     discount = models.ManyToManyField(Discount, blank=True)
     rating = models.DecimalField(max_digits=2, decimal_places=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
@@ -102,6 +104,18 @@ class Wallet(models.Model):
     def __str__(self):
         return f"{self.customer.user.username}'s Wallet"
 
+class Address(models.Model):
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
+    pin = models.CharField(max_length=10,
+        validators= [ RegexValidator(
+                        regex=r'^\d{6}$',
+                        message='Pin number should be 6 digit number.')
+                        ]
+    )
+    customer = models.ForeignKey(
+        Customer, on_delete=models.CASCADE)
+
 
 class Order(models.Model):
     PAYMENT_STATUS_PENDING = 'P'
@@ -126,21 +140,17 @@ class OrderItem(models.Model):
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
 
 
-class Address(models.Model):
-    street = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    customer = models.ForeignKey(
-        Customer, on_delete=models.CASCADE)
+
 
 
 class CartItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    quantity = models.PositiveSmallIntegerField()
-    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='cart_customer')
+    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='cart_customer')
 
     class Meta:
-        unique_together = [['product', 'user']]
+        unique_together = [['product', 'customer']]
 
 
 class Review(models.Model):

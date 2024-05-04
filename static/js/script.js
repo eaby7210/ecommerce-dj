@@ -101,6 +101,14 @@
     initProductQty();
     countdownTimer();
 
+    // Close add-popup when Esc key is pressed
+    $(document).keyup(function (e) {
+      if (e.which === 27) {
+        // 27 is the key code for Esc
+        $(".add-popup").removeClass("is-visible");
+      }
+    });
+
     /* Video */
     var $videoSrc;
     $(".play-btn").click(function () {

@@ -27,7 +27,7 @@ urlpatterns = [
     path('accounts/',include('allauth.urls')),
     path('myadmin/',include('myadmin.urls')),
     
-    path('__debug__/', include(debug_toolbar.urls)),
+    # path('__debug__/', include(debug_toolbar.urls)),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,

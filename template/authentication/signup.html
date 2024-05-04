@@ -15,11 +15,12 @@
 {% block content %}
 <!-- ========== Start Signup ========== -->
 <div class="signup-box container py-5">
-    <div class="card myCard text-center container">
+    <div class="card myCard text-sart container">
         <h2 class="card-header text-center mb-3">Signup</h2>
 
         <form class="form-horizontal d-grid gap-4 p-3" method="post" action="{%url 'signup'%}" novalidate>
             {% csrf_token %}
+
             {% render_form serializer %}
 
             <button type="submit" class="btn btn-outline-success btn-block">

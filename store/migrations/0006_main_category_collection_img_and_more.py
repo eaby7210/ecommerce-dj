@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='collection',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='collection_products', to='store.collection'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='brand_products', to='store.collection'),
         ),
         migrations.AddField(
             model_name='product',

@@ -1,0 +1,170 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block menu %}
+{% include "admin/admin-nav.html" %}
+{% endblock menu %}
+
+{% block content %}
+<div class="container">
+    {{title}}
+    <form id="updateUserForm" class="form-horizontal" data-update-url="{%url 'admin-product-detail' product.id%}">
+        <fieldset>
+
+
+
+            {% render_form serializer %}
+
+            <div class="form-action offset-sm-4 col-sm-8">
+                <p id="formerror" class="text-danger text-start my-2"></p>
+
+                <button type="button" id="saveUserButton" class="btn btn-primary">
+                    Save Product
+                </button>
+                {% if product.active is True %}
+                <button type="button" class="btn btn-danger col-4 fs-6" data-bs-toggle="modal"
+                    data-bs-target="#blockModal" data-bs-userid={{product.id}} data-bs-username={{product.title}}>
+                    Hide
+                </button>
+                {%else%}
+                <button type="button" class="btn btn-danger col-4 fs-6" data-bs-toggle="modal"
+                    data-bs-target="#unblockModal" data-bs-userid={{product.id}} data-bs-username={{product.title}}>
+                    Unhide
+                </button>
+                {% endif %}
+                <a class="btn btn-outline-warning col-4 fs-6" href="{%url 'product_images-list' product.id%}">Product
+                    Images</a>
+            </div>
+
+        </fieldset>
+    </form>
+</div>
+
+<!-- Block -->
+<div class="modal fade" id="blockModal" tabindex="-1" aria-labelledby="userBlockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content ">
+            <div class="modal-header">
+
+                <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="blockform" action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button id="blockbtn" type="button" class="btn btn-primary">Hide Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- UnBlock -->
+<div class="modal fade" id="unblockModal" tabindex="-1" aria-labelledby="userUnblockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content ">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Unide Product</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="unblockform" action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button id="unblockbtn" type="button" class="btn btn-primary">Unblock User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const saveUserButton = document.getElementById('saveUserButton');
+        const updateUserForm = document.getElementById('updateUserForm');
+        const updateUrl = updateUserForm.getAttribute('data-update-url')
+        const blockbtn = document.getElementById('blockbtn')
+        const unblockbtn = document.getElementById('unblockbtn')
+        console.log(updateUrl)
+
+        blockModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const form = document.getElementById('blockform')
+
+            const userid = button.getAttribute('data-bs-userid')
+            const username = button.getAttribute('data-bs-username')
+            const modalTitle = blockModal.querySelector('.modal-title')
+            const modalmsg = blockModal.querySelector('.modal-body')
+            modalTitle.textContent = `Hide product ${userid}`
+            modalmsg.textContent = `Are u sure to Hide ${username}`
+        })
+
+
+        unblockModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const form = document.getElementById('unblockform')
+            const userid = button.getAttribute('data-bs-userid')
+            const username = button.getAttribute('data-bs-username')
+            const modalTitle = unblockModal.querySelector('.modal-title')
+            const modalmsg = unblockModal.querySelector('.modal-body')
+            modalTitle.textContent = `Unhide product ${username}`
+            modalmsg.innerHTML = `<p>Are u sure to Unhide ${username}</p>`
+        })
+
+        update = (data) => {
+            console.log(data)
+            fetch(updateUrl, {
+                method: 'PUT',
+                body: data,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+                .then(response => {
+
+                    if (response.status === 200) {
+                        window.location.href = '/myadmin/products/'
+                    } else {
+                        return response.text()
+                    }
+
+                })
+                .then(data => {
+                    if (data != undefined) {
+                        formError = document.getElementById('formerror')
+                        formError.innerText = `Please enter a valid ${data}`
+                        console.log(data)
+                    }
+                })
+
+        }
+        saveUserButton.addEventListener('click', function () {
+            const formData = new FormData(updateUserForm);
+            console.log(formData)
+            update(formData)
+
+        });
+        blockbtn.addEventListener('click', function () {
+            const formData = new FormData(updateUserForm);
+            console.log("blocking")
+            formData.delete('active')
+            update(formData)
+
+        });
+        unblockbtn.addEventListener('click', function () {
+            const formData = new FormData(updateUserForm);
+            console.log("unblocking")
+            formData.append('active', true)
+            update(formData)
+
+        });
+
+    });
+</script>
+
+{% endblock content %}

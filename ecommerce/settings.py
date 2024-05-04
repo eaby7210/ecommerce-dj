@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'rest_framework',
-    'debug_toolbar',
+    # 'debug_toolbar',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -58,12 +58,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
      'allauth.account.middleware.AccountMiddleware',
 ]
 
@@ -78,6 +79,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'store.context_processors.collection',
+                'store.context_processors.userCustomer',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -150,6 +152,8 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000/']
+
 REST_FRAMEWORK={
     'COERCE_DECIMAL_TO_STRING':False,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -194,6 +198,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = '123arunbalakrishnan@gmail.com'  
 EMAIL_HOST_PASSWORD = "zygltiuakwpcdjdg" 
 EMAIL_USE_TLS = True 
+
 
 # DJOSER={
 #     'CREATE_SESSSION_ON_LOGIN':True,
