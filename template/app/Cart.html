@@ -8,60 +8,10 @@
         <h3 class="">Your Cart</h3>
         <button type="button" class="btn btn-dark ">Go To Checkout</button>
     </div>
-
     {% for item in results %}
-    <div class="card mb-4">
-        <div class="card-header">
-            Order Id: {{item.id}}
-        </div>
-        <div class="card-body">
-
-            <div class="row">
-                <div class="col">
-                    <h5 class="card-title">{{item.product.title}}</h5>
-                    <h6 class="card-subtitle mb-2 text-body-secondary col">${{item.product.unit_price}}
-                        {{item.product.id}}</h6>
-                </div>
-
-                <div class="col">
-                    {% if item.product.stock %}
-                    <p class="text-end fs-6  text-danger fw-semibold">
-                        {{item.product.stock}}</p>
-                    {%else%}
-                    <p classs="col"></p>
-                    {% endif %}
-                </div>
-            </div>
-            <div id="itemdetails{{item.id}}" class="card-text mx-2 row gap-5 text-center">
-                <span class="col">Quantity: {{item.quantity}}</span>
-                <span class="text-center col">Total Price: ${{item.total_price}}</span>
-
-            </div>
-            <div class="d-flex flex-row justify-content-center">
-                <div class="btn-group-vertical col-3" role="group" aria-label="Vertical button group">
-                    <div class="input-group ">
-
-                        <button type="button" hx-put="{%url 'u-cart-detail' item.id%}" hx-trigger="click"
-                            hx-target="#itemdetails{{item.id}}"
-                            hx-vals='{"mode": "minus","quantity":1,"product_id":{{item.product.id}}}'
-                            class="input-group-text fs-4 text-danger">-</button>
-                        <input type="text" id="quantity{{item.id}}" class="form-control fs-5 text-center"
-                            placeholder="Custom Quantity" aria-label="Quantity">
-
-                        <button type="submit" hx-put="{%url 'u-cart-detail' item.id%}" hx-trigger="click"
-                            hx-target="#itemdetails{{item.id}}"
-                            hx-vals='{"mode": "add","quantity":1,"product_id":{{item.product.id}}}'
-                            class="input-group-text fs-4 text-primary">+</button>
-
-                    </div>
-                    <button type="button" class="btn btn-outline-secondary">remove</button>
-                </div>
-            </div>
-
-
-        </div>
+    <div class="card mb-4" id="cartitem{{item.id}}">
+        {% include "app/cart-list.html" %}
     </div>
-
     {% endfor %}
 
 </section>

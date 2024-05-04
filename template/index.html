@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
 
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
 
 
 
@@ -176,9 +176,9 @@
             <div class="container-fluid">
                 <div class="row g-0">
                     {% block messages %}
-                    <div id="messages-section">
+                    <section id="messages-section">
                         {% include "messages.html" %}
-                    </div>
+                    </section>
                     {% endblock messages %}
                 </div>
             </div>
@@ -289,12 +289,13 @@
                 event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
             })
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="{% static 'js/htmx.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/jquery-1.11.0.min.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
     <script type="text/javascript" src="{% static 'js/script.js' %}"></script>
-    <script>
+    <!-- <script>
         const toastTrigger = document.getElementById('liveToastBtn')
         const toastLiveExample = document.getElementById('liveToast')
 
@@ -304,7 +305,7 @@
             toastBootstrap.show()
         })
 
-    </script>
+    </script> -->
 </body>
 
 </html>

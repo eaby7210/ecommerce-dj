@@ -1,11 +1,7 @@
 {% load rest_framework %}
-{% block messages %}
-{% for message in messages %}
-<div class="col-md-4 border-start border-end">
-    <p class="fs-6 my-2 text-center">{{message}}</p>
-</div>
-{% endfor %}
-{% endblock messages %}
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>
 {% if error %}
 <details class="container my-3" open>
     <summary class="h4">Add Barnd</summary>

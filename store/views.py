@@ -166,9 +166,14 @@ class CartViewSet(ModelViewSet):
             cartserializer=CartSerializer(instance=instance)
             cart=cartserializer.data
             print(cart)
-            return HttpResponse(
-                f'<span class="col">Quantity: {cart['quantity']}</span> <span class="text-center col">Total Price: ${cart['total_price']}</span>'
+            messages.info(
+                request,f'Quantity of item {cart['product']['title']} changed to "{cart['quantity']}"'
                 )
+            context={
+                "item":cart
+            }
+            response=Response(context,template_name="app/cart-list.html",content_type="text/html")
+            return response
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
