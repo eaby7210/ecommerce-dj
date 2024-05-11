@@ -356,32 +356,6 @@ textarea.form-control::placeholder {
 }
 
 /*--------------------------------------------------------------
-/** 3.2 Form Select
---------------------------------------------------------------*/
-.filter-blog .form-select,
-.filter-shop .form-select {
-  padding: 0;
-  font-size: 21px;
-  font-weight: 200;
-  border: none;
-  background-color: transparent;
-  line-height: normal;
-  width: 180px;
-}
-.form-select:focus {
-  box-shadow: none;
-}
-
-.form-check-input:checked {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-.form-check-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 0.25rem rgba(243, 141, 68, 0.25);
-}
-
-/*--------------------------------------------------------------
 /** 3.3 Table
 --------------------------------------------------------------*/
 th {
@@ -498,15 +472,7 @@ th {
   cursor: pointer;
   z-index: 9;
 }
-.search-box input.search-input {
-  font-size: 1.3em;
-  width: 70%;
-  height: 30px;
-  padding: 25px;
-  border-radius: 80px;
-  border-color: rgb(0 0 0 / 25%);
-  background: transparent;
-}
+
 .search-box svg {
   width: 22px;
   height: 22px;
@@ -779,8 +745,8 @@ th {
 @media only screen and (max-width: 500px) {
   .cart-dropdown .dropdown-menu,
   .wishlist-dropdown .dropdown-menu {
-    min-width: -webkit-fill-available;
     min-width: -moz-fit-content;
+    min-width: -webkit-fill-available;
     min-width: fit-content;
   }
 }

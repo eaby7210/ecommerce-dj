@@ -1,0 +1,25 @@
+{% load rest_framework %}
+{% if address %}
+
+
+<form>
+    {% csrf_token %}
+
+    {% render_form serializer %}
+
+
+    <button type="button" class="btn btn-secondary my-3" data-bs-dismiss="modal">Close</button>
+
+    <button type="submit" data-bs-dismiss="modal" hx-put="{%url 'u-address-detail' address.id%}" hx-trigger="click"
+        hx-target="#address-section" class="btn btn-primary">Save
+        Address</button>
+
+</form>
+{% endif %}
+{% if error %}
+<button type="button" hx-get="{%url 'u-address-list'%}" hx-target="#address-section" hx-trigger="click"
+    class="btn btn-primary my-4">Go To Address list</button>
+{% endif %}
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

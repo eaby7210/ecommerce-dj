@@ -31,7 +31,9 @@
                 <button type="button" hx-put="/cart/{{item.id}}/" hx-trigger="click" hx-target="#cartitem{{item.id}}"
                     hx-vals='{"mode": "minus","quantity":1,"product_id":{{item.product.id}}}'
                     class="input-group-text fs-4 text-danger">-</button>
-                <input type="text" id="quantity{{item.id}}" class="form-control fs-5 text-center"
+                <input hx-put="/cart/{{item.id}}/" name="quantity" hx-trigger="keyup delay:1000"
+                    hx-target="#cartitem{{item.id}}" hx-vals='{"mode": "update","product_id":{{item.product.id}}}'
+                    type="text" id="quantity{{item.id}}" class="form-control fs-5 text-center"
                     placeholder="Custom Quantity" aria-label="Quantity">
 
                 <button type="submit" hx-put="/cart/{{item.id}}/" hx-trigger="click" hx-target="#cartitem{{item.id}}"
@@ -39,11 +41,29 @@
                     class="input-group-text fs-4 text-primary">+</button>
 
             </div>
-            <button type="button" class="btn btn-outline-secondary">remove</button>
+            <button type="button" hx-get="{%url 'u-cart-detail' item.id%}" hx-trigger="click"
+                hx-target="#cart-modal-body" class="btn btn-outline-danger" data-bs-toggle="modal"
+                data-bs-target="#cart-delete">Remove</button>
+
+            <div class="modal fade" id="cart-delete" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">Remove Cart Item</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div id="cart-modal-body">
+                            {% include "app/cart-del.html" %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
         </div>
     </div>
-
-
 </div>
 <section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
     {% include "messages.html" %}

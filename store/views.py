@@ -2,20 +2,24 @@ from django.http import HttpResponse,JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.db.models.aggregates import Count
+from django.db.models import Prefetch
 from .models import Product,Brand,Address
 from .serializers import *
+from .filter import ProductPagination,ProductFirstPagination
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 from .filters import *
-#from rest_framework.response import SimpleTemplateResponse
 from rest_framework.viewsets import ModelViewSet, GenericViewSet,ReadOnlyModelViewSet
 from rest_framework.renderers import TemplateHTMLRenderer
-#from rest_framework.mixins.
 from rest_framework import status
-import pprint
+# import pprint
+#from rest_framework.response import SimpleTemplateResponse
+#from rest_framework.mixins.
 
 # Create your views here.
 
@@ -23,19 +27,31 @@ class ProductListView(APIView, PageNumberPagination):
     """
     API view to get a paginated list of active products with HTML template rendering.
     """
-    pagination_class = PageNumberPagination
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'app/products.html'  # Assuming template location
     page_size=20
-
+    # filterset_class = ProductFilter
     def get(self, request, format=None):
         """
         Get a list of active products.
         """
-        queryset = Product.objects.prefetch_related('images').select_related('brand').select_related('category').filter(active=True)
+        if request.user.is_authenticated:
+            customer = Customer.objects.get(user=self.request.user)
+            queryset=Product.objects.prefetch_related(
+                'images',
+                Prefetch(
+                    'cartitem_set',queryset=CartItem.objects.only('id','quantity').filter(customer=customer),
+                         to_attr='cart_items'
+                         )
+                ).select_related('brand', 'category').filter(active=True)
+        else:
+            queryset = Product.objects.prefetch_related('images').select_related('brand').select_related('category').filter(active=True)
         page = self.paginate_queryset(queryset,request)
         if page is not None:
-            serializer = ProductSerializer(page, many=True, context={'request': request})
+            if request.user.is_authenticated:
+                serializer=ProductCartSerializer(page, many=True, context={'request': request})
+            else:
+                serializer = ProductSerializer(page, many=True, context={'request': request})
             # print("data : ",serializer.data)
             total_products=self.page.paginator.count
             page_size=self.get_page_size(request)
@@ -48,14 +64,76 @@ class ProductListView(APIView, PageNumberPagination):
                 'page_number':self.get_page_number(request,paginator=page),
                 'page_size':page_size,
                 'count': total_products,
-                'next': self.get_next_link(),
-                'previous': self.get_previous_link(),
+                'next': f'/product/?page={self.page.number+1}',
+                'previous': f'/product/?page={self.page.number-1}',
                 'results': serializer.data,
             }
+            print("first:",context['next'])
             return Response(context, status=status.HTTP_200_OK)
         serializer = ProductSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+  
+  
+class ProductViewset(ProductPagination,ReadOnlyModelViewSet):
+    pagination_class = ProductPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter,OrderingFilter]
+    search_fields = ['title']
+    ordering_fields = ['title','unit_price', 'last_update']
+    renderer_classes=[TemplateHTMLRenderer]
     
+    def get_serializer_class(self):
+        if self.request.user.is_authenticated:
+            return ProductCartSerializer
+        else:
+            return ProductSerializer
+    def get_serializer_context(self):
+        return {'request':self.request}
+    
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            customer = Customer.objects.get(user=self.request.user)
+            return Product.objects.prefetch_related(
+                'images',
+                Prefetch(
+                    'cartitem_set',queryset=CartItem.objects.only('id','quantity').filter(customer=customer),
+                         to_attr='cart_items'
+                         )
+                ).select_related('brand', 'category').filter(active=True)
+        return Product.objects.prefetch_related('images').\
+            select_related('brand').select_related('category').\
+                filter(active=True)
+    
+    def get_template_names(self) -> list[str]:
+        if self.action == 'list':
+            return ["app/products-list.html"]
+        else:
+            return ["app/product_page.html"]
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset,request=request)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    def retrieve(self, request, *args, **kwargs):
+        
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            context={
+                'product':serializer.data,
+            }
+            return Response(context)
+        except:
+            messages.info(request,"That Product is currently unavailable")
+            return redirect('product_list')
+    
+
+#not completed
 class BrandViewSet(ReadOnlyModelViewSet):
     queryset=Brand.objects.annotate(products_count=Count('brand_products')).filter(active=True)
     pagination_class=CustomPagination
@@ -73,7 +151,8 @@ class BrandViewSet(ReadOnlyModelViewSet):
     def get_serializer_context(self):
         return {'request':self.request}
     
-    
+
+#not completed  
 class CategoryViewSet(ReadOnlyModelViewSet):
     queryset=Main_Category.objects.annotate(products_count=Count('categories_products')).filter(active=True)
     pagination_class=CustomPagination
@@ -91,38 +170,7 @@ class CategoryViewSet(ReadOnlyModelViewSet):
     def get_serializer_context(self):
         return {'request':self.request}
     
-      
-#---PRoduct view to display or edit or delete specified one product
-class ProductDetailView(APIView):
-    """
-    API view to get details of a specific product.
-    """
-    renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'app/product_page.html'
-    
-    
 
-    def get(self, request, pk, format=None):
-        """
-        Retrieve details of a product with the given primary key (pk).
-        """
-        try:
-            product = Product.objects.prefetch_related('images').get(pk=pk, active=True)
-        except Product.DoesNotExist:
-            product=None
-        if bool(product):
-            serializer = ProductSerializer(product)
-            context={
-                'serializer':serializer,
-                'product':serializer.data
-            }
-            print(serializer.data)
-            return Response(context)
-        messages.info(request,"That Product is currently unavailable")
-        return redirect('product_list')
-  
-    
-#class ReviewSet(ModelViewSet)
 class CartViewSet(ModelViewSet):
     permission_classes=[IsAuthenticated]
     renderer_classes=[TemplateHTMLRenderer]
@@ -131,7 +179,6 @@ class CartViewSet(ModelViewSet):
         if self.action in ['list']:
             return ["app/cart.html"]
         
-    
     def get_customer_id(self):
         return Customer.objects.only('id').get(user_id=self.request.user.id)
     def get_serializer_context(self):
@@ -150,57 +197,108 @@ class CartViewSet(ModelViewSet):
         return CartItem.objects.select_related('product').filter(customer=customer_id)
     
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-    
+        print(request.data)
+        data={key: value for key, value in request.data.items()}
+        mode=data.pop('mode')
+        page=data.pop('in')
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            instance,message=serializer.save(mode=mode)
+            cartserializer=CartSerializer(instance=instance)
+            cart=cartserializer.data
+            messages.error(request,message=message)
+            if page== 'list':
+                context={
+                "item":cart
+                }
+                response=Response(context,template_name="app/cart-add-listpage.html",content_type="text/html")
+                return response
+            elif page == 'detail':
+                context={
+                "item":cart
+                }
+                response=Response(context,template_name="app/cart-add-detailpage.html",content_type="text/html")
+                return response
+            
+        else:
+            messages.error(request,"Error in Adding to cart")
+            context={
+                "item":instance
+            }
+            return Response(context,template_name="app/cart-list.html",content_type="text/html")
+            
     def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return HttpResponse("")
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        context={
+            "serializer":serializer,
+            "item":serializer.data
+        }
+        return Response(context,template_name="app/cart-del.html",content_type="text/html")
+    
     def update(self, request, *args, **kwargs):
         data={key: value for key, value in request.data.items()}
         print(data)
         mode=data.pop('mode')
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=data, partial=partial)
+        
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
-            instance=serializer.save(mode=mode)
+            instance,message=serializer.save(mode=mode)
             cartserializer=CartSerializer(instance=instance)
             cart=cartserializer.data
             print(cart)
-            messages.info(
-                request,f'Quantity of item {cart['product']['title']} changed to "{cart['quantity']}"'
-                )
+            messages.info(request,message=message)
             context={
                 "item":cart
             }
             response=Response(context,template_name="app/cart-list.html",content_type="text/html")
             return response
+        else:
+            messages.error(request,"Error in updating quantity")
+            context={
+                "item":instance
+            }
+            return Response(context,template_name="app/cart-list.html",content_type="text/html")
 
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-
-    
-class AddressView(APIView):
+class OrderViewSet(ModelViewSet):
     renderer_classes=[TemplateHTMLRenderer]
     
     def get_queryset(self):
-        
-        return Address.objects.filter(customer=self.request.user.customer)
+        return super().get_queryset()
+    
+    def get_serializer_class(self):
+        return super().get_serializer_class()
+    
+    def get_serializer_context(self):
+        return super().get_serializer_context()
     
     def get_template_names(self) -> list[str]:
-        if self.request.method in ['GET']:
+        if condition:
             return [""]
-    def get(self,request):
-        pass
+        return super().get_template_names()
     
-    def post(self,request):
-        pass
     
-    def put(self,request):
-        pass
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
     
-    def delete(self,request):
-        pass
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+    
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs) 
+    
+    
     
         
     

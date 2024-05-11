@@ -1,0 +1,6 @@
+Are you sure to delete Address: "{{address.name}}"
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button hx-delete="{%url 'u-address-detail' address.id%}" hx-target="#address{{address.id}}" hx-swap="outerHTML"
+        type="button" class="btn btn-danger" data-bs-dismiss="modal">Delete</button>
+</div>

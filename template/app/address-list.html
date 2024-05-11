@@ -1,30 +1,31 @@
 <div class="col-9">
 
-    <div class="card mb-4">
-        <div class="card-header">
-            Featured
-        </div>
-        <div class="card-body">
-            <h5 class="card-title">Special title treatment</h5>
-            <p class="card-text">With supporting text below as a natural lead-in to
-                additional
-                content.</p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
-        </div>
+    {% for address in results %}
+
+
+    <div class="card mb-4" id="address{{address.id}}">
+        {% include "app/address-items.html" %}
     </div>
-    <div class="card">
-        <div class="card-header">
-            Featured
-        </div>
-        <div class="card-body">
-            <h5 class="card-title">Special title treatment</h5>
-            <p class="card-text">With supporting text below as a natural lead-in to
-                additional
-                content.</p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
-        </div>
-    </div>
+    {% endfor %}
+
 </div>
 <div class="d-flex flex-row align-items-start justify-content-end col-3">
-    <button type="button" class="btn btn-primary">Add Address</button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressform">Add
+        Address</button>
+</div>
+
+
+
+<div class="modal fade" tabindex="-1" id="addressform" aria-labelledby="addressPostModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="address-add-form">
+                {% include "app/address-add-form.html" %}
+            </div>
+        </div>
+    </div>
 </div>

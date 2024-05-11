@@ -11,111 +11,81 @@
         </ul>
     </nav>
 </div>
-
-
-<section class="home-cards grid container my-6">
+<div class="container d-flex felx-row justify-content-between mb-3">
     <h1 class="h1 row font-monospace">Products</h1>
-    <div class="d-flex justify-content-between">
-        {% if previous %}
-        <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
-        {% else %}
-        <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
-        {% endif %}
-        <p>{{page_number}}/{{total_pages}}</p>
+    <div class="d-flex felx-row justify-content-between">
+        <form>
+            <div class="py-2">
+                <div class="input-group flex-nowrap form-floating">
+                    <input type="text" class="form-control" id="searchbox" name="search" aria-label="Search Keyword"
+                        aria-describedby="addon-wrapping">
+                    <label for="searchbox">Search Keyword</label>
+                    <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
 
-        {% if next %}
-        <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
-        {% else %}
-        <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
-        {% endif %}
+
+                        <div class="btn-group " role="group">
+                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Sortings
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio1"
+                                        autocomplete="off" value="title">
+                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio1">Product
+                                        A-Z</label>
+                                </li>
+                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio2"
+                                        autocomplete="off" value="-title" checked>
+                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio2">Product
+                                        Z-A</label>
+                                </li>
+                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio3"
+                                        autocomplete="off" value="unit_price">
+                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio3">Price
+                                        ++</label>
+                                </li>
+                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio4"
+                                        autocomplete="off" value="-unit_price">
+                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio4">Price
+                                        --</label>
+                                </li>
+                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio5"
+                                        autocomplete="off" value="last_update">
+                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio5">Latest
+                                        --</label>
+                                </li>
+                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio6"
+                                        autocomplete="off" value="-last_update">
+                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio6">Oldest
+                                        --</label>
+                                </li>
+                            </ul>
+                        </div>
+                        <script>
+                            const searchBox = document.getElementById("searchbox");
+
+                            getSearch = () => {
+                                const searchBox = document.getElementById("searchbox");
+                                return searchBox.value
+                            }
+                            getOrdering = () => {
+                                const sortradio = document.querySelector("input[name='ordering']:checked")
+                                return sortradio.value
+                            }
+                        </script>
+                        <button hx-get="{%url 'u-product-list'%}" hx-trigger="click" hx-target="#productlistsection"
+                            type="button" class="btn btn-dark"
+                            hx-vals='js:{search:getSearch(),ordering:getOrdering()}'><i class="fa-solid fa-filter"></i>
+                            Filter</button>
+
+                    </div>
+
+                </div>
+            </div>
+        </form>
     </div>
-
-
-    <div class="row ">
-
-        {% for item in results %}
-
-        <!--  
-        <div class="card col-lg-3 col-sm-6 m-3">
-            <img class="card-img-top img-fluid" src="{{item.images.0.image}}" alt="product pic here">
-            <div class="card-body">
-                <h3>{{item.title}}</h3>
-                <p class="d-none d-md-block">${{item.unit_price}}</p>
-            </div>
-            <ul class="list-group list-group-flush">
-                <li class="d-flex justify-content-between list-group-item">
-
-                    <a class="">{{item.collection.title}}</a>
-                    <a class="ps-3 fs-6 text-end">{{item.category.title}}</a>
-                </li>
-
-            </ul>
-
-            <div class="card-body">
-                <a href="{%url 'product_page' pk=item.id%}">Learn more <i class="fa fa-thin fa-chevron-right"></i></a>
-            </div>
-        </div>
-        -->
-        <div class="card col-lg-3 col-sm-6 m-3 text-center py-4 border rounded-3">
-            <div class="card-concern position-absolute start-0 end-0 d-flex gap-2 mb-5">
-                <button type="button" href="#" class="btn btn-dark" data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-title="Tooltip on top">
-                    <svg class="cart">
-                        <use xlink:href="#cart"></use>
-                    </svg>
-                </button>
-                <a href="#" class="btn btn-dark">
-                    <span>
-                        <svg class="wishlist">
-                            <use xlink:href="#heart"></use>
-                        </svg>
-                    </span>
-                </a>
-            </div>
-            {% if item.stock %}
-            <p class="text-end fs-6 col-5 text-danger fw-semibold my-0 ">{{item.stock}}</p>
-            {%else%}
-            <p> </p>
-            {% endif %}
-
-            <a href="{%url 'product_page' pk=item.id%}">
-
-                <img src="{{item.images.0.image}}" class="img-fluid" alt="product item picture">
-                <h5 class="mt-2">{{item.title}}</h5>
-            </a>
-            <span class="price text-primary fw-light mb-2">${{item.unit_price}}</span>
-            <ul class="list-group list-group-flush">
-                <li class="d-flex justify-content-between list-group-item">
-                    <a class="fs-6">{{item.brand.title}}</a>
-                    <a class="ps-3 fs-6 text-end">{{item.category.title}}</a>
-                </li>
-
-            </ul>
-
-        </div>
-        {% if forloop.counter|divisibleby:3 %}
-    </div>
-    <div class="row">
-
-        {% endif %}
-        {% endfor %}
-
-
-        <div class="d-flex justify-content-between">
-            {% if previous %}
-            <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
-            {% else %}
-            <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
-            {% endif %}
-            <p>{{page_number}}/{{total_pages}}</p>
-
-            {% if next %}
-            <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
-            {% else %}
-            <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
-            {% endif %}
-        </div>
-
-
+</div>
+<section id="productlistsection" class="home-cards grid container my-6">
+    {% include "app/products-list.html" %}
 </section>
 {% endblock content %}

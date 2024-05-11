@@ -1,0 +1,8 @@
+<span id="itemquantity{{item.id}}" class="badge bg-primary text-white rounded-pill">{{item.quantity}}</span>
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>
+<span id="cartcount" hx-swap="innerHTML" hx-swap-oob="true" class="badge bg-primary text-white rounded-pill">
+    {{cart_count}}
+</span>

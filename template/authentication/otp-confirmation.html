@@ -13,24 +13,30 @@
 </div>
 {% endblock menu %}
 {% block content %}
-<!-- ========== Start Signup ========== -->
+<!-- ========== Start form ========== -->
 <div class="signup-box container py-5">
     <div class="card myCard text-sart container">
         <h2 class="card-header text-center mb-3">Signup</h2>
 
-        <form class="form-horizontal d-grid gap-4 p-3" method="post" action="{%url 'signup'%}" novalidate>
+        <form class="form-horizontal d-grid gap-4 p-3" method="post" action="{%url 'verify-email' user_id%}" novalidate>
             {% csrf_token %}
 
             {% render_form serializer %}
+            <div class="row justify-content-end align-items-center g-2">
+
+                <a hx-post="{%url 'resendmail' user_id%}" hx-trigger="click" hx-target="#messages-section"
+                    class="btn btn-primary col-2">Resend OTP</a>
+
+            </div>
 
             <button type="submit" class="btn btn-outline-success btn-block">
-                Signup
+                Submit
             </button>
         </form>
-
     </div>
 </div>
-<!-- ========== End Signup ========== -->
+<!-- ========== End form ========== -->
+
 
 
 {% endblock content %}

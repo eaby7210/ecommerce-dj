@@ -1,0 +1,8 @@
+<div class="modal-body">
+    Are you sure to remove Item "{{item.product.title}}"
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" hx-delete="{%url 'u-cart-detail' item.id%}"
+        hx-swap="outerHTML" hx-trigger="click" hx-target="#cartitem{{item.id}}">remove</button>
+</div>

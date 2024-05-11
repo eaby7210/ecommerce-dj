@@ -1,7 +1,7 @@
 {% for message in messages %}
 
 {% if message.tags == 'success' %}
-<div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,3000)">
+<div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
     <div class="toast-container position-fixed top-0 end-0 p-3">
         <div class="toast show align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
             aria-atomic="true">
@@ -16,7 +16,7 @@
         </div>
     </div>
     {% elif message.tags == 'info' %}
-    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,3000)">
+    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
         <div class="toast-container position-fixed top-0 end-0 p-3">
             <div class="toast show align-items-center text-bg-dark text-success border-0" role="alert"
                 aria-live="assertive" aria-atomic="true">
@@ -32,10 +32,10 @@
         </div>
     </div>
     {% elif message.tags == 'error' %}
-    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,3000)">
+    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
         <div class="toast-container position-fixed top-0 end-0 p-3">
-            <div class="toast show align-items-center text-bg-ddanger border-0" role="alert" aria-live="assertive"
-                aria-atomic="true">
+            <div class="toast show align-items-center text-bg-danger text-white border-0" role="alert"
+                aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
                     <div class="toast-body fs-5 fw-semibold">
                         {{message}}
@@ -49,7 +49,7 @@
         </div>
     </div>
     {% elif message.tags == 'warning' %}
-    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,3000)">
+    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
         <div class="toast-container position-fixed top-0 end-0 p-3">
             <div class="toast show align-items-center text-bg-warning border-0" role="alert" aria-live="assertive"
                 aria-atomic="true">

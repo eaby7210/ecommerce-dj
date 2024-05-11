@@ -61,14 +61,33 @@
 
 
                     <div class="buttons d-grid my-5 ">
-                        <div class="row justify-content-between">
-                            <a href="#" class="shadow btn custom-btn col-4">Wishlist</a>
-                            <button class="shadow btn custom-btn col-4">Add to cart</button>
-
-                            <div class="block quantity col-3">
-                                <input type="number" class="form-control" id="cart_quantity" value="1" min="0" max="5"
-                                    placeholder="Enter email" name="cart_quantity">
+                        <div class="row justify-content-between" id="productcontrols">
+                            <div class="col-3">
+                                <a href="#" class="btn btn-dark  tex-center ">Wishlist</a>
                             </div>
+                            {% if product.inventory == 0 %}
+                            {%else%}
+                            {% if product.cart_items.0.quantity %}
+                            <button hx-post="{%url 'u-cart-list'%}" hx-trigger="click" hx-target="#productcontrols"
+                                hx-vals='{"quantity":1,"product_id":{{product.id}},"mode":"add","in":"detail"}'
+                                type="button" class="shadow btn btn-dark col-4">Add to
+                                cart
+                                ({{product.cart_items.0.quantity}})</button>
+                            {%else%}
+                            <button type="button" hx-post="{%url 'u-cart-list'%}" hx-trigger="click"
+                                hx-target="#productcontrols"
+                                hx-vals='{"quantity":1,"product_id":{{product.id}},"mode":"add","in":"detail"}'
+                                class="shadow btn btn-dark col-4">Add to
+                                cart</button>
+                            {% endif %}
+                            <div class="block quantity col-4">
+                                <input type="number" class="form-control" id="cart_quantity" min="0" max="5"
+                                    placeholder="Quantity" name="cart_quantity">
+                            </div>
+                            {% endif %}
+
+
+
                         </div>
                     </div>
 

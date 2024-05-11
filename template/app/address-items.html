@@ -1,0 +1,62 @@
+<div class="card-header row">
+    {% if address.primary %}
+    <h5 class="col">{{address.name}}</h5>
+    <p class="col text-end text-danger">Primary Address</p>
+    {%else%}
+    <h5>{{address.name}}</h5>
+    {% endif %}
+</div>
+<div class="card-body">
+    <h6 class="h6 text-capitalize card-title">{{address.state}}, {{address.city}}</h6>
+    <h6 class="h6 fw-normal card-text">pin: {{address.pin}}</h6>
+    <p class="card-subtitle">{{address.other_details}}</p>
+    <div class="card-footer">
+        <button type="button" hx-get="{%url 'u-address-detail' address.id%}" hx-target="#address-edit-form"
+            hx-trigger="click" hx-vals='{"mode":"edit"}' class="btn btn-primary" data-bs-toggle="modal"
+            data-bs-target="#addresseditform">Edit</button>
+        <button type="button" hx-get="{%url 'u-address-detail' address.id%}" hx-vals='{"mode":"delete"}'
+            hx-trigger="click" hx-target="#address-delete" class="btn btn-danger" data-bs-toggle="modal"
+            data-bs-target="#addressdelete">Delete</button>
+
+    </div>
+</div>
+{% if updated %}
+<button type="button" hx-get="{%url 'u-address-list'%}" hx-target="#address-section" hx-trigger="click"
+    class="btn btn-primary my-4">Go To Address list</button>
+{% endif %}
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>
+
+<div class="modal fade" tabindex="-1" id="addresseditform" aria-labelledby="addressPostModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="address-edit-form">
+                {% include "app/address-edit-form.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="addressdelete" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Delete Address</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="address-delete">
+                {% include "app/address-delete.html" %}
+
+            </div>
+        </div>
+    </div>
+</div>

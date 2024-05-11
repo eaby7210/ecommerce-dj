@@ -1,10 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator,RegexValidator
-from django.db.models.functions import Coalesce
 from django.conf import settings
 from django.contrib import admin
-from uuid import uuid4
-
+# from django.db.models.functions import Coalesce
+# from uuid import uuid4
 
 class Discount(models.Model):
     description = models.CharField(max_length=255)
@@ -60,12 +59,13 @@ class Product(models.Model):
 
     class Meta:
         ordering = ['title']
+
+
 class ProductImage(models.Model):
     product=models.ForeignKey(Product,on_delete=models.CASCADE,related_name='images')
     image=models.ImageField(upload_to='store/images')
     
-
-
+    
 class Customer(models.Model):
     MEMBERSHIP_BRONZE = 'B'
     MEMBERSHIP_SILVER = 'S'
@@ -96,6 +96,7 @@ class Customer(models.Model):
     class Meta:
         ordering = ['user__first_name', 'user__last_name']
         
+        
 class Wallet(models.Model):
     customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -104,8 +105,10 @@ class Wallet(models.Model):
     def __str__(self):
         return f"{self.customer.user.username}'s Wallet"
 
+
 class Address(models.Model):
-    street = models.CharField(max_length=255)
+    name=models.CharField(max_length=255)
+    state = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     pin = models.CharField(max_length=10,
         validators= [ RegexValidator(
@@ -113,9 +116,10 @@ class Address(models.Model):
                         message='Pin number should be 6 digit number.')
                         ]
     )
-    customer = models.ForeignKey(
-        Customer, on_delete=models.CASCADE)
-
+    primary=models.BooleanField(default=False)
+    other_details=models.TextField(blank=True,null=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    
 
 class Order(models.Model):
     PAYMENT_STATUS_PENDING = 'P'
@@ -126,7 +130,7 @@ class Order(models.Model):
         (PAYMENT_STATUS_COMPLETE, 'Complete'),
         (PAYMENT_STATUS_FAILED, 'Failed')
     ]
-
+    total=models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1)])
     placed_at = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(
         max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
@@ -138,9 +142,6 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orderitems")
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
-
-
-
 
 
 class CartItem(models.Model):
