@@ -1,7 +1,8 @@
 from decimal import Decimal
-from store.models import Product,Brand,CartItem,ProductImage,Main_Category,Customer,Order,OrderItem
+from django.db import transaction
+from store.models import Product,Brand,CartItem,ProductImage,Main_Category,Customer,Order,OrderItem,Coupon
 from rest_framework import serializers
-from core.serializers import UserSerializer,UserUpdateSerializer
+from core.serializers import UserSerializer,UserUpdateSerializer,UserNormalUpdateSerializer
 
 
 class BrandDetailsSerializer(serializers.ModelSerializer):
@@ -120,6 +121,7 @@ class SimpleProductSerializer(serializers.ModelSerializer):
         model=Product
         fields=['id', 'title', 'unit_price','stock']
 
+
 class CartSerializer(serializers.ModelSerializer):
     product=SimpleProductSerializer(read_only=True)
     total_price=serializers.SerializerMethodField()
@@ -214,6 +216,12 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model=Customer
         fields=['id','membership','birth_date','user']
+
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    user=UserNormalUpdateSerializer()
+    class Meta:
+        model=Customer
+        fields=['id','birth_date','user']
         
 class CustomerUpdateSerializer(serializers.ModelSerializer):
     user=UserUpdateSerializer()
@@ -229,9 +237,10 @@ class CustomerCreateSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product=SimpleProductSerializer()
+    
     class Meta:
         model=OrderItem 
-        fields=['id','product','unit_price','quantity']
+        fields=['id','product','quantity']
         
         
 class OrderSerializer(serializers.ModelSerializer):
@@ -239,4 +248,61 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
+        fields = ['id', 'customer', 'placed_at', 'payment_status','total', 'items']
+        
+class CreateOrderSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Order
+        fields = ['id','address']
+        
+    def validate_address(self,address):
+        customer=self.context['customer']
+        count= CartItem.objects.filter(customer=customer).count()
+        print(count)
+        if count <=0:
+            raise serializers.ValidationError('Your Cart is empty')
+        return address
+    
+    def save(self, **kwargs):
+        with transaction.atomic():
+            address=self.validated_data['address']
+            customer=self.context['customer']
+            cart_items=CartItem.objects.select_related('product').filter(customer=customer)
+            prices=[item.product.unit_price*item.quantity for item in cart_items]
+            total=sum(prices)
+            new_order=Order.objects.create(customer=customer,address=address,total=total)
+            order_items=[
+                OrderItem(
+                    order=new_order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    
+                ) for item in cart_items
+                ]
+            OrderItem.objects.bulk_create(order_items)
+            cart_items.delete()
+            message="Your order is placed successfully"
+            return new_order,message
+        
+
+class UpdateOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['address']
+        
+
+class UpdateAdminOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['payment_status']
+        
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Coupon
+        fields=['id','code']
+        
+class CouponCUSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Coupon
+        fields=['id','name','valid_from','valid_to','discount','active']

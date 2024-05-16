@@ -1,0 +1,28 @@
+<li class="list-group-item p-4">
+    <div class="row">
+        <div class="col">
+            <h5 class="card-title">{{item.product.title}}</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary col">${{item.product.unit_price}}
+                {{item.product.id}}</h6>
+        </div>
+
+        <div class="col">
+            {% if item.product.stock %}
+            <p class="text-end fs-6  text-danger fw-semibold">
+                {{item.product.stock}}</p>
+            {%else%}
+            <p classs="col"></p>
+            {% endif %}
+        </div>
+    </div>
+    <div id="itemdetails{{item.id}}" class="card-text d-flex flex-row justify-content-between">
+        <span class="">Quantity: {{item.quantity}}</span>
+        <span class="">Total Price: ${{item.total_price}}</span>
+
+    </div>
+</li>
+
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

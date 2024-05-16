@@ -18,6 +18,19 @@
           "min-width: fit-content"
         ]
       }
-    ]
+    ],
+    "axe/aria": [
+      "default",
+      {
+        "aria-required-parent": "off"
+      }
+    ],
+    "axe/structure": [
+      "default",
+      {
+        "listitem": "off"
+      }
+    ],
+    "meta-viewport": "off"
   }
 }

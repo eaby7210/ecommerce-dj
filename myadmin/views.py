@@ -73,6 +73,8 @@ class UserViewSet(ModelViewSet):
                 # cache.invalidate_queries(Customer.objects)
                 if getattr(instance, '_prefetched_objects_cache', None):
                     instance._prefetched_objects_cache = {}
+                if getattr(instance.user, '_prefetched_objects_cache', None):
+                    instance.user._prefetched_objects_cache = {}
                 messages.success(request,"User profile updated successfully")
                 return HttpResponse("success",status=200)
             else:
@@ -118,7 +120,6 @@ class UserViewSet(ModelViewSet):
         response=Response(context, status=status.HTTP_200_OK)
         response['Cache-Control'] = 'no-cache'
         return response
-
 
 
 class ProductViewSet(ModelViewSet):
@@ -398,9 +399,80 @@ class ProductImageViewSet(ModelViewSet,PageNumberPagination):
             return HttpResponse(serializer.errors,status=406)
 
 
+class OrderViewSet(ModelViewSet):
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
+    permission_classes=[IsAdminUser]
+    renderer_classes=[TemplateHTMLRenderer]
+    pagination_class=PageNumberPagination
+    queryset=Order.objects.select_related('customer').prefetch_related('items').all()
+    
+    def get_customer_id(self):
+        return Customer.objects.only('id').get(user_id=self.request.user.id)
+    
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self,
+            'customer_id':self.get_customer_id().id
+        }
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreateOrderSerializer
+        elif self.request.method == 'PUT':
+            return UpdateAdminOrderSerializer
+        return OrderSerializer
+
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            response.template_name="admin/order.html"
+            response.content_type="text/html"
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
     
+    def update(self, request, *args, **kwargs):
+        order_id=kwargs.get('pk')
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            order= Order.objects.get(id=order_id)
+            context={
+                'order':order
+            }
+            return Response(context,template_name="admin/order-row.html",content_type="text/html")
+    def retrieve(self, request, *args, **kwargs):
+        mode=None
+        if bool(request.GET):
+            print(request.GET)
+            mode=request.GET['mode']
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        context={
+            'serializer':UpdateAdminOrderSerializer(),
+            'order':instance.id
+        }
+        response = Response(context)
+        if mode == "update":
+            response.template_name="admin/order-form.html"
+            response.content_type="text'html"
+            return response
+    def create(self, request, *args, **kwargs):
+        serializer = CreateOrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
     
-    
-

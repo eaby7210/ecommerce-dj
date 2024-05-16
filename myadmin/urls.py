@@ -9,6 +9,7 @@ router.register('products',views.ProductViewSet,basename='admin-product')
 router.register('brand',views.BrandViewSet,basename='admin-brand')
 router.register('category',views.CategoryAdminViewSet)
 router.register('user',views.UserViewSet,basename="admin-users")
+router.register('order',views.OrderViewSet,basename='admin-order')
 
 product_router=routers.NestedSimpleRouter(router,'products',lookup='product')
 product_router.register('images',views.ProductImageViewSet,basename='product_images')

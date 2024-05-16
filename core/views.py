@@ -15,7 +15,7 @@ from rest_framework.renderers import TemplateHTMLRenderer,HTMLFormRenderer
 from .permission import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from store.serializers import BrandDetailsSerializer,CustomerSerializer
+from store.serializers import BrandDetailsSerializer,CustomerSerializer,CustomerProfileSerializer
 from store.models import Customer
 from allauth.account.models import EmailAddress
 from django.db.models.aggregates import Count
@@ -246,24 +246,34 @@ class ProfileAPIView(APIView):
         serializer=CustomerSerializer(customer)
         
         context={
-            'serializer':serializer,
+            'serializer':CustomerProfileSerializer(customer),
             'customer':serializer.data,
             'member_text':customer.get_membership_display()
         }
-        print("context",context)
         return Response(context,template_name="authentication/profile.html",content_type="text/html")
     def put(self,request):
         customer=self.get_queryset()
-        serializer=CustomerSerializer(customer,data=request.data)
-        if serializer.is_valid():
-            customer=serializer.save()
-            messages.success(request,"Profile updated successfully")
-            context={
-                'serializer':serializer,
-                'customer':customer,
-                'member_text':customer.get_membership_display()
-            }
-            return Response(context)
+        print(request.data)
+        user_data={key.split(".")[1]: value for key, value in request.data.items()  if key.startswith("user.")}
+        customer_data = {key: value for key, value in request.data.items() if not key.startswith("user.")}
+        print("\nuser: ",user_data,"\ncustomer: ",customer_data)
+        user_serializer=UserUpdateSerializer(customer.user,data=user_data,partial=True)
+        if user_serializer.is_valid():
+            serializer=CustomerProfileSerializer(customer,data=customer_data,partial=True)
+            if serializer.is_valid():
+                user_serializer.save()
+                serializer.save()
+                customer_data['user']=user_serializer.data
+                # cache.invalidate_queries(Customer.objects)
+                if getattr(customer, '_prefetched_objects_cache', None):
+                    customer._prefetched_objects_cache = {}
+                messages.success(request,"Profile updated successfully")
+                context={
+                    'serializer':CustomerProfileSerializer(customer),
+                    'customer':customer,
+                    'member_text':customer.get_membership_display()
+                }
+                return Response(context,template_name="app/about.html",content_type="text/html")
         else:
             messages.error(request,"Please enter valid details")
             context={
@@ -271,7 +281,7 @@ class ProfileAPIView(APIView):
                 'customer':customer,
                 'member_text':customer.get_membership_display()
             }
-            return Response(context)
+            return Response(context,template_name="app/about.html",content_type="text/html")
     
 class AddressViewSet(ModelViewSet,AdressPagination):
     permission_classes=[IsAuthenticated]

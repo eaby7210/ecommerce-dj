@@ -8,6 +8,7 @@ router.register('product',views.ProductViewset,basename="u-product")
 router.register('brands',views.BrandViewSet,basename="u-brand")
 router.register('category',views.CategoryViewSet,basename='u-category')
 router.register('cart',views.CartViewSet,basename='u-cart')
+router.register('order',views.OrderViewSet,basename='u-order')
 
 
 # URLConf

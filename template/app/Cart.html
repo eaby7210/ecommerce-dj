@@ -6,7 +6,12 @@
 
     <div class="d-flex my-3 justify-content-between">
         <h3 class="">Your Cart</h3>
-        <button type="button" class="btn btn-dark ">Go To Checkout</button>
+        {% if cart_count != 0 %}
+
+
+        <button hx-get="{%url 'u-cart-list'%}" hx-vals='{"mode":"checkout"}' hx-target="#main" hx-trigger="click"
+            type="button" id="checkbtn" class="btn btn-dark ">Go To Checkout</button>
+        {% endif %}
     </div>
     {% for item in results %}
     <div class="card mb-4" id="cartitem{{item.id}}">

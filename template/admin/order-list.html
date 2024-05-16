@@ -1,0 +1,75 @@
+<section class="container">
+    <div class="d-flex justify-content-between">
+        {% if previous %}
+        <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
+        {% else %}
+        <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
+        {% endif %}
+        <p>{{page_number}}/{{total_pages}}</p>
+
+        {% if next %}
+        <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
+        {% else %}
+        <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
+        {% endif %}
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Placed at</th>
+                <th scope="col">Payment status</th>
+                <th scope="col">Product Count</th>
+                <th scope="col">Total</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in results%}
+            <tr id="orderrow{{order.id}}">
+
+
+
+                <th scope="row">{{order.id}}</th>
+                <td>{{order.placed_at}}</td>
+                <td>{{order.payment_status}}</td>
+                <td>{{order.product_count}}</td>
+                <td>{{order.total}}</td>
+                <td class="row justify-content-around">
+                    <button hx-get="{%url 'admin-order-detail' order.id%}" hx-target="#ordermodalcontent"
+                        hx-trigger="click" hx-vals='{"mode":"update"}' class="btn btn-outline-secondary p-2 col-5 fs-6"
+                        data-bs-toggle="modal" data-bs-target="#ordermodal">
+                        Edit</button>
+
+                </td>
+            </tr>
+
+
+
+
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+
+
+<!-- Modal Body -->
+<!-- if you want to close by clicking outside the modal, delete the last endpoint:data-bs-backdrop and data-bs-keyboard -->
+<div class="modal fade" id="ordermodal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+    aria-labelledby="modalTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content" id="ordermodalcontent">
+
+        </div>
+    </div>
+</div>
+
+<!-- Optional: Place to the bottom of scripts -->
+<script>
+    const myModal = new bootstrap.Modal(
+        document.getElementById("modalId"),
+        options,
+    );
+</script>

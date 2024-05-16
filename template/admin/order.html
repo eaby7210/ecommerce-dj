@@ -1,0 +1,13 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block menu %}
+{% include "admin/admin-nav.html" %}
+{% endblock menu %}
+
+{% block content %}
+
+<section id="list-section" class="container my-3">
+    {% include "admin/order-list.html" %}
+</section>
+
+{% endblock content %}

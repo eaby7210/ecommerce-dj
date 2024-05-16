@@ -1,3 +1,4 @@
+{% load rest_framework %}
 <div class="gap-3 col-9">
     <div class="row">
         <div class="col-md-6">
@@ -57,8 +58,40 @@
     {% endif %}
 </div>
 <div class="d-flex flex-row justify-content-end">
-    <button type="button" class="btn btn-secondary align-item-end ">
+    <button type="button" class="btn btn-secondary align-item-end " data-bs-toggle="modal"
+        data-bs-target="#profilemodal">
         Edit Profile
     </button>
 
 </div>
+
+<!-- Modal trigger button -->
+
+
+<!-- Modal Body -->
+<!-- if you want to close by clicking outside the modal, delete the last endpoint:data-bs-backdrop and data-bs-keyboard -->
+<div class="modal fade" id="profilemodal" tabindex="-1" role="dialog" aria-labelledby="modalTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitleId">
+                    Edit Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    {% render_form serializer %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                    <button hx-put="{%url 'profile'%}" hx-target="#about-section" hx-trigger="click" type="button"
+                        class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

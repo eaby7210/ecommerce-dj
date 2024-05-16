@@ -1,0 +1,23 @@
+<h2 class="container mb-4">Checkout</h2>
+<div class="container row mx-auto ">
+    <section id="orderplacement" class="mb-2 col-7">
+
+    </section>
+    <section class="mt-2 col">
+        <div class="card mb-4" id="cartitem{{item.id}}" hx-get="{%url 'u-order-list'%}" hx-vals='{"mode":"checkout"}'
+            hx-target="#orderplacement" hx-trigger="load">
+            <div class="card-header">
+                In Cart
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for item in results %}
+
+                {% include "app/cart-checkout.html" %}
+
+                {% endfor %}
+            </ul>
+        </div>
+        <a href="{%url 'u-cart-list'%}" class="btn btn-outline-secondary mx-4">Go to Cart</a>
+
+    </section>
+</div>

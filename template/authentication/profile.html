@@ -40,8 +40,10 @@
                             </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" id="order-tab" data-bs-toggle="tab" data-bs-target="#order"
-                                type="button" role="tab" aria-controls="order" aria-selected="true">
+                            <button hx-get="{%url 'u-order-list'%}" hx-target="#order-section" hx-trigger="click"
+                                hx-vals='{"mode":"profile"}' class="nav-link" id="order-tab" data-bs-toggle="tab"
+                                data-bs-target="#order" type="button" role="tab" aria-controls="order"
+                                aria-selected="true">
                                 Order
                             </button>
                         </li>

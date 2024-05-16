@@ -1,0 +1,18 @@
+{% load rest_framework %}
+<div class="modal-header">
+    <h5 class="modal-title" id="modalTitleId">
+        Id: {{order}}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form>
+        {% render_form serializer %}
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Close
+        </button>
+        <button class="btn btn-primary" type="button" hx-put="{%url 'admin-order-detail' order%}" hx-trigger="click"
+            hx-target="#orderrow{{order}}" data-bs-dismiss="modal">Update
+            Order</button>
+    </form>
+</div>

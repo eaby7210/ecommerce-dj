@@ -11,9 +11,23 @@ class Discount(models.Model):
     active = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     
+class Coupon(models.Model):
+    code=models.CharField(max_length=50,unique=True)
+    name=models.CharField(max_length=50)
+    valid_from=models.DateTimeField()
+    valid_to=models.DateTimeField()
+    discount=models.IntegerField(validators=[
+        MinValueValidator(0),MaxValueValidator(100)
+        ]
+        )
+    active=models.BooleanField(default=False)
+    
+    def _str__(self):
+        return self.name
+    
 
 class Main_Category(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100,unique=True)
     description = models.TextField(default='Default Description')
     img = models.ImageField(upload_to='store/categories', default='null', null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -120,8 +134,16 @@ class Address(models.Model):
     other_details=models.TextField(blank=True,null=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     
+    def __str__(self):
+        return self.name+", "+self.city+', '+self.state
+    class Meta:
+        ordering=['-primary']
+    
+    
 
 class Order(models.Model):
+    
+    #payment status
     PAYMENT_STATUS_PENDING = 'P'
     PAYMENT_STATUS_COMPLETE = 'C'
     PAYMENT_STATUS_FAILED = 'F'
@@ -130,18 +152,43 @@ class Order(models.Model):
         (PAYMENT_STATUS_COMPLETE, 'Complete'),
         (PAYMENT_STATUS_FAILED, 'Failed')
     ]
-    total=models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1)])
+    
+    #order status
+    ORDER_STATUS_PLACED = 'PL'
+    ORDER_STATUS_SHIPPED = 'SH'
+    ORDER_STATUS_DELIVERED = 'DL'
+    ORDER_STATUS_CANCELLED = 'CA'
+
+    # Order Return Statuses (integrated within order_status)
+    ORDER_STATUS_RETURN_REQUESTED = 'RR'  # Return requested by customer
+    ORDER_STATUS_RETURN_APPROVED = 'RA'  # Return approved by seller
+    RETURN_STATUS_RECEIVED = 'RC'  # Returned product received by seller
+    RETURN_STATUS_PROCESSED = 'RP'  # Return processed (refund issued etc.)
+
+    ORDER_STATUS_CHOICES=[
+        (ORDER_STATUS_PLACED, 'Placed'),
+        (ORDER_STATUS_SHIPPED, 'Shipped'),
+        (ORDER_STATUS_DELIVERED, 'Delivered'),
+        (ORDER_STATUS_CANCELLED, 'Cancelled'),
+        (ORDER_STATUS_RETURN_REQUESTED, 'Return Requested'),
+        (ORDER_STATUS_RETURN_APPROVED, 'Return Approved'),
+        (RETURN_STATUS_RECEIVED, 'Return Received'),
+        (RETURN_STATUS_PROCESSED, 'Return Processed'),
+    ]
+    
+    address=models.ForeignKey(Address,on_delete=models.PROTECT,related_name='address')
+    total=models.DecimalField(default=0,max_digits=6, decimal_places=2)
     placed_at = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(
         max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
+    order_status=models.CharField(max_length=2,choices=ORDER_STATUS_CHOICES, default=ORDER_STATUS_PLACED)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='o_customer')
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='order')
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orderitems")
     quantity = models.PositiveSmallIntegerField()
-    unit_price = models.DecimalField(max_digits=6, decimal_places=2)
 
 
 class CartItem(models.Model):
@@ -152,6 +199,13 @@ class CartItem(models.Model):
 
     class Meta:
         unique_together = [['product', 'customer']]
+        
+class CouponApplied(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='coupon_customer')
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='coupon_applied')
+    
+    class Meta:
+        unique_together=[['customer','coupon']]
 
 
 class Review(models.Model):

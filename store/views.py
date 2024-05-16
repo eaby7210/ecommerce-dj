@@ -175,9 +175,9 @@ class CartViewSet(ModelViewSet):
     permission_classes=[IsAuthenticated]
     renderer_classes=[TemplateHTMLRenderer]
     
-    def get_template_names(self) -> list[str]:
-        if self.action in ['list']:
-            return ["app/cart.html"]
+    # def get_template_names(self) -> list[str]:
+    #     if self.action in ['list']:
+    #         return ["app/cart.html"]
         
     def get_customer_id(self):
         return Customer.objects.only('id').get(user_id=self.request.user.id)
@@ -195,6 +195,29 @@ class CartViewSet(ModelViewSet):
     def get_queryset(self):
         customer_id=self.get_customer_id().id
         return CartItem.objects.select_related('product').filter(customer=customer_id)
+    def list(self, request, *args, **kwargs):
+        mode=None
+        if bool(request.GET):
+            print(request.GET)
+            mode=request.GET['mode']
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response= self.get_paginated_response(serializer.data)
+            response.content_type="text/html"
+            if mode is None:
+                response.template_name="app/cart.html"
+                return response
+            elif mode =="checkout":
+                response.template_name="app/checkout.html"
+                return response
+                
+            
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
     def create(self, request, *args, **kwargs):
         print(request.data)
@@ -229,8 +252,9 @@ class CartViewSet(ModelViewSet):
             
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        messages.warning(request,f"{instance.product.title} has been removed from cart")
         self.perform_destroy(instance)
-        return HttpResponse("")
+        return Response(template_name="app/nav-update.html",content_type="text/html")
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -266,37 +290,94 @@ class CartViewSet(ModelViewSet):
             return Response(context,template_name="app/cart-list.html",content_type="text/html")
 
 class OrderViewSet(ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'head', 'options']
     renderer_classes=[TemplateHTMLRenderer]
+    permission_classes=[IsAuthenticated]
     
     def get_queryset(self):
-        return super().get_queryset()
+        user = self.request.user
+        customer_id = Customer.objects.only('id').get(user_id=user.id)
+        return Order.objects.filter(customer_id=customer_id)
+    
+    def get_customer_id(self):
+        return Customer.objects.only('id').get(user_id=self.request.user.id)
     
     def get_serializer_class(self):
-        return super().get_serializer_class()
+        if self.action in ['create','update']:
+            return CreateOrderSerializer
+        elif self.action in ['update']:
+            return UpdateOrderSerializer
+        elif self.action in ['list','retieve']:
+            return OrderSerializer
     
     def get_serializer_context(self):
-        return super().get_serializer_context()
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self,
+            'customer':self.get_customer_id()
+        }
     
-    def get_template_names(self) -> list[str]:
-        if condition:
-            return [""]
-        return super().get_template_names()
-    
-    
+   
     def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        mode=None
+        if bool(request.GET):
+            print(request.GET)
+            mode=request.GET['mode']
+        if mode=="checkout":
+            # customer=self.get_customer_id()
+            # address=Address.objects.filter(customer=customer.id)
+            serializer=CreateOrderSerializer()
+            messages.warning(request,"Please select an address to place the order")
+            context={
+                'serializer':serializer,
+            }
+            return Response(context,template_name="app/order-add.html",content_type="text/html")
+        elif mode=="profile":
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                response= self.get_paginated_response(serializer.data)
+                response.template_name="app/order-list.html"
+                response.content_type="text/html"
+                return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
     
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        serializer = CreateOrderSerializer(
+            data=request.data,context={'customer':self.get_customer_id()}
+            )
+        if serializer.is_valid():
+            order,message = serializer.save()
+            serializer = OrderSerializer(order)
+            messages.success(request,message)
+            context={
+                'order':serializer.data
+            }
+            return Response(context,template_name='app/order-summary.html',content_type='text/html')
+        else:
+            pass
+        
     
     def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        else:
+            pass
     
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs) 
+    # def destroy(self, request, *args, **kwargs):
+    #     return super().destroy(request, *args, **kwargs) 
+    
+
     
     
     

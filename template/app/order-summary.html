@@ -1,0 +1,32 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+
+{% block content %}
+
+
+<section class="container">
+    <h3>Your order summary</h3>
+    <div class="card">
+        <div class="card-header d-flex flex-row justify-content-between">
+            <h3>Id:{{order.id}}</h4>
+                <p>payment:{{order.payment_status}}</p>
+                <h4></h4>
+        </div>
+        <div class="card-body">
+            {% for item in order.items %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">{{item.product.title}}</h4>
+                    <p class="card-text">{{item.quantity}}</p>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+        <div class="card-footer">${{order.total}}</div>
+    </div>
+
+
+
+</section>
+{% endblock content %}

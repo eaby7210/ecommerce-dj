@@ -209,6 +209,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta():
         model=User
         fields=['id','first_name','last_name','username','email','phone','is_active','is_staff']
+
+class UserNormalUpdateSerializer(serializers.ModelSerializer):
+    class Meta():
+        model=User
+        fields=['id','first_name','last_name','username','email','phone']
         
 class AddressSerrializer(serializers.ModelSerializer):
    
