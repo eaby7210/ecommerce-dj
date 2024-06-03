@@ -1,0 +1,36 @@
+<div class="card mb-3">
+    <div class="card-header bg-primary">Select an Address</div>
+    <div id="address-section" class="p-2">
+        <div class="card-body">
+            <div class="card-title row">
+                {% if address.primary %}
+                <h5 class="col">{{address.name}}</h5>
+                <p class="col text-end text-danger">Primary Address</p>
+                {%else%}
+                <h5>{{address.name}}</h5>
+                {% endif %}
+            </div>
+
+            <h6 class="h6 text-capitalize card-title">{{address.state}}, {{address.city}}</h6>
+            <h6 class="h6 fw-normal card-text">pin: {{address.pin}}</h6>
+            <p class="card-subtitle">{{address.other_details}}</p>
+        </div>
+        <div class="card-footer bg-secomdary">
+            <button type="button" class="btn btn-secondary" hx-get="{%url 'u-address-list'%}" hx-trigger="click"
+                hx-target="#address-section" hx-vals='{"mode":"checkout-list"}'>Choose another Address</button>
+            <button type="button" hx-get="{%url 'u-address-list'%}" hx-trigger="click" hx-target="#address-section"
+                hx-vals='{"mode":"checkout-form"}' class="btn btn-primary">Add New Address</button>
+        </div>
+    </div>
+
+</div>
+</div>
+<button type="submit" id="order-submit" class="btn btn-dark align-self-end" hx-swap="outerHTML" hx-swap-oob="true">Place
+    Order</button>
+
+<input type="text" name="address" value="{{address.id}}" hx-swap="outerHTML" hx-select-oob="true" id="address-input"
+    hidden>
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

@@ -4,7 +4,12 @@
 <div class="card my-2">
     <div class="card-header d-flex flex-row justify-content-between">
         <h3>Order id: {{order.id}}</h3>
-        <h4>Payment status: {{order.payment_status}}</h4>
+
+    </div>
+    <div class="d-flex flex-row justify-content-around bg-secondary text-center">
+        <h5>Status:</h5>
+        <p>payment: {{order.payment_status}}</p>
+        <p>order: {{order.order_status}}</p>
     </div>
     <div class="card-body">
         {% for item in order.items %}
@@ -19,7 +24,10 @@
 
         {% endfor %}
     </div>
-    <div class="card-footer">Total Price: ${{order.total}}</div>
+    <div class="card-footer d-flex flex-row justify-content-between">
+        <p>Total Price: ${{order.total}}</p>
+        <a class="btn btn-primary" href="{%url 'u-order-detail' order.id%}">Order details</a>
+    </div>
 </div>
 <hr class="bg-secondary py-1 rounded">
 {% endfor %}

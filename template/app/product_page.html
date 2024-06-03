@@ -62,8 +62,17 @@
 
                     <div class="buttons d-grid my-5 ">
                         <div class="row justify-content-between" id="productcontrols">
-                            <div class="col-3">
-                                <a href="#" class="btn btn-dark  tex-center ">Wishlist</a>
+                            <div class="col-3" id="wishbtn">
+                                {% if product.wishlist_items.0 %}
+                                <button hx-post="{%url 'u-wishlist-list'%}" hx-trigger="click" hx-target="#wishbtn"
+                                    hx-vals='{"mode":"product_page","product_id":{{product.id}}}'
+                                    class="btn btn-success  tex-center">Wishlist</button>
+                                {%else%}
+                                <button hx-post="{%url 'u-wishlist-list'%}" hx-trigger="click" hx-target="#wishbtn"
+                                    hx-vals='{"mode":"product_page","product_id":{{product.id}}}'
+                                    class="btn btn-dark  tex-center ">Wishlist</button>
+                                {% endif %}
+
                             </div>
                             {% if product.inventory == 0 %}
                             {%else%}

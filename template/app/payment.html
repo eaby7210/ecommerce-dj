@@ -1,0 +1,119 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block paymnet-section %}
+
+
+{% block header-nav %}
+<nav id="header-nav" class="navbar navbar-expand-lg py-3">
+    <div class="container">
+        <h3>E-commerce</h3>
+
+        <button class="navbar-toggler d-flex d-lg-none order-3 p-2" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#bdNavbar" aria-controls="bdNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <svg class="navbar-icon">
+                <use xlink:href="#navbar-icon"></use>
+            </svg>
+        </button>
+
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="bdNavbar" aria-labelledby="bdNavbarOffcanvasLabel">
+            <div class="offcanvas-header px-4 pb-0">
+
+                <h3>E-commerce</h3>
+
+                <button type="button" class="btn-close btn-close-black" data-bs-dismiss="offcanvas" aria-label="Close"
+                    data-bs-target="#bdNavbar"></button>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock header-nav %}
+
+{% block content %}
+
+
+<section class="container">
+    <h3 class="my-3">Online Payment</h3>
+
+    <div class="card my-3" id="ordercard">
+        <div class="card-header d-flex flex-row justify-content-between">
+            <h4>Id:{{razorpay.order.id}}</h4>
+        </div>
+        <div class="card-body">
+
+            <div class="row">
+                <h5 class="col">Delivering Address: </h5>
+                {% if razorpay.order.address.primary %}
+                <h5 class="col">{{razorpay.order.address.name}}</h5>
+                <p class="col text-end text-danger">Primary Address</p>
+                {%else%}
+                <h5>{{razorpay.order.address.name}}</h5>
+                {% endif %}
+            </div>
+            <h6 class="h6 text-capitalize card-title">{{razorpay.order.address.state}}, {{razorpay.order.address.city}}
+            </h6>
+            <h6 class="h6 fw-normal card-text">pin: {{razorpay.order.address.pin}}</h6>
+            <p class="card-subtitle">{{razorpay.order.address.other_details}}</p>
+        </div>
+        <div class="card">
+            {% for item in razorpay.order.items %}
+
+            <div class="card-body">
+                <div class="d-flex flex-row justify-content-between">
+
+                    <h4 class="card-title">{{item.product.title}}</h4>
+                    <p class="card-text">Quantity: {{item.quantity}}</p>
+                    <p class="card-text">Unit Price: {{item.product.unit_price}}</p>
+                    <div class="col-1"><img class="img-fluid" src="/media/{{item.product.image}}" alt="Product Image">
+                    </div>
+                </div>
+
+
+                <hr>
+
+
+            </div>
+            {% endfor %}
+
+        </div>
+        <div class="card-footer">
+            <h5>Total: ${{razorpay.order.total}}</h5>
+            <h4>Grand Total: ${{razorpay.order.grand_total}}</h4>
+
+        </div>
+    </div>
+    <div class="d-flex flex-row my-3 justify-content-end">
+        <button class="btn btn-dark" id="rzp-button1">Pay Now with Razorpay</button>
+    </div>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+
+        var options = {
+            "key": "rzp_test_XqEMlS82BGA5ki", // Enter the Key ID generated from the Dashboard
+            "amount": "{{ptotal}}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+            "currency": "INR",
+            "name": "E-commerce",
+            "description": "Test Transaction",
+            "order_id": "{{razorpay.id}}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            "callback_url": "{%url 'u-payment'%}",
+            "prefill": {
+                "name": "{{user.first_name}} {{user.last_name}}",
+                "email": "{{user.email}}",
+                "contact": "{{user.phone}}"
+            },
+
+            "theme": {
+                "color": "#fd6f4f"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+        document.getElementById('rzp-button1').onclick = function (e) {
+            console.log(e)
+            rzp1.open();
+            e.preventDefault();
+        }
+    </script>
+
+
+</section>
+{% endblock content %}
+{% endblock paymnet-section %}

@@ -400,27 +400,15 @@ class ProductImageViewSet(ModelViewSet,PageNumberPagination):
 
 
 class OrderViewSet(ModelViewSet):
-    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
+    http_method_names = ['get', 'put', 'head', 'options']
     permission_classes=[IsAdminUser]
     renderer_classes=[TemplateHTMLRenderer]
     pagination_class=PageNumberPagination
-    queryset=Order.objects.select_related('customer').prefetch_related('items').all()
+    queryset=Order.objects.select_related('customer','address','applied_coupon').prefetch_related('items').all()
     
-    def get_customer_id(self):
-        return Customer.objects.only('id').get(user_id=self.request.user.id)
-    
-    def get_serializer_context(self):
-        return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self,
-            'customer_id':self.get_customer_id().id
-        }
     
     def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return CreateOrderSerializer
-        elif self.request.method == 'PUT':
+        if self.request.method == 'PUT':
             return UpdateAdminOrderSerializer
         return OrderSerializer
 
@@ -446,6 +434,16 @@ class OrderViewSet(ModelViewSet):
         if serializer.is_valid():
             self.perform_update(serializer)
             order= Order.objects.get(id=order_id)
+            if instance.order_status=='RR' and order.order_status=='RA':
+                try:
+                    wallet=Wallet.objects.get(customer=self.get_customer_id())
+                    wallet.balance+=instance.grand_total
+                    wallet.save()
+                except Wallet.DoesNotExist:
+                    wallet=Wallet.objects.create(
+                        customer=order.customer,
+                        wallet=instance.grand_total
+                    )
             context={
                 'order':order
             }
@@ -456,7 +454,7 @@ class OrderViewSet(ModelViewSet):
             print(request.GET)
             mode=request.GET['mode']
         instance = self.get_object()
-        serializer = self.get_serializer(instance)
+        
         context={
             'serializer':UpdateAdminOrderSerializer(),
             'order':instance.id
@@ -464,15 +462,109 @@ class OrderViewSet(ModelViewSet):
         response = Response(context)
         if mode == "update":
             response.template_name="admin/order-form.html"
-            response.content_type="text'html"
+            response.content_type="text/html"
             return response
-    def create(self, request, *args, **kwargs):
-        serializer = CreateOrderSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        order = serializer.save()
-        serializer = OrderSerializer(order)
+        else:
+            serializer = self.get_serializer(instance)
+            context={
+                'order':serializer.data,
+            }
+            print(context)
+            response = Response(context)
+            response.template_name='admin/order-detail.html'
+            response.content_type='text/html'
+            return response
+
+    
+class CouponViewSet(ModelViewSet):
+    permission_classes=[IsAdminUser]
+    renderer_classes=[TemplateHTMLRenderer]
+    pagination_class=PageNumberPagination
+    serializer_class=CouponCUSerializer
+    queryset=Coupon.objects.all()
+    
+
+        
+    
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response= self.get_paginated_response(serializer.data)
+            response.data['serializer']=CouponCUSerializer()
+            response.template_name="admin/coupon-list.html"
+            response.content_type="text/html"
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({
+            'coupon':serializer.data,
+            'serializer':serializer
+            },template_name="admin/coupon-edit.html",content_type="text/html")
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            messages.success(request,"Coupon saved Successfully")
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                {
+                    'coupon':serializer.data,
+                    'serializer':CouponCUSerializer()
+                    },
+                template_name="admin/coupon-row.html",
+                content_type="text/html",
+                status=status.HTTP_201_CREATED,
+                headers=headers
+                )
+        else:
+            context={
+                'serializer':serializer
+            }
+            messages.error(request,"Please enter a valid Coupon details")
+            return Response(context,template_name="admin/coupon-add-form.html",content_type='text/html')
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            messages.success(request,f"Coupoun {instance.id} Updated Successfully")
+            if getattr(instance, '_prefetched_objects_cache', None):
+                # If 'prefetch_related' has been applied to a queryset, we need to
+                # forcibly invalidate the prefetch cache on the instance.
+                instance._prefetched_objects_cache = {}
+            context={
+                'coupon':self.get_object(),
+                
+            }
+            return Response(context,template_name="admin/coupon-row.html",content_type="text/html")
+        else:
+            messages.error(request,"Please enter a valid Coupon details")
+            context={
+                'coupon':instance,
+                
+            }
+            return Response(context,template_name="admin/coupon-row.html",content_type="text/html")
+    
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
-
+    
+class NavUpdateView(APIView):
+    permission_classes=[IsAdminUser]
+    renderer_classes=[TemplateHTMLRenderer]
+    
+    def get(self,request):
+        return Response(template_name="admin/admin-nav-update.html",content_type="txt/html")
+    
     

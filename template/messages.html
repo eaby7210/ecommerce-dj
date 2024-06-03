@@ -1,71 +1,73 @@
-{% for message in messages %}
-
-{% if message.tags == 'success' %}
-<div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
+<div>
     <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% for message in messages %}
+
+        {% if message.tags == 'success' %}
+
         <div class="toast show align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
-            aria-atomic="true">
+            aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
             <div class="d-flex">
                 <div class="toast-body fs-5 fw-semibold">
                     {{message}}
                 </div>
-                <button @click="dismissed=true" type="button" class="btn-close btn-close-white me-2 fw-bolder m-auto"
-                    data-bs-dismiss="toast" aria-label="Close"></button>
+                <button @click="dismissed{{ forloop.counter }}=true" type="button"
+                    class="btn-close btn-close-white me-2 fw-bolder m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
             </div>
 
         </div>
-    </div>
-    {% elif message.tags == 'info' %}
-    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
-        <div class="toast-container position-fixed top-0 end-0 p-3">
-            <div class="toast show align-items-center text-bg-dark text-success border-0" role="alert"
-                aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body fs-5 fw-semibold">
-                        {{message}}
-                    </div>
-                    <button @click="dismissed=true" type="button"
-                        class="btn-close btn-close-white me-2 fw-bolder m-auto" aria-label="Close"></button>
+
+        {% elif message.tags == 'info' %}
+
+        <div class="toast show align-items-center text-bg-dark text-success border-0" role="alert" aria-live="assertive"
+            aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
+            <div class="d-flex">
+                <div class="toast-body fs-5 fw-semibold">
+                    {{message}}
                 </div>
-
+                <button @click="dismissed{{ forloop.counter }}=true" type="button"
+                    class="btn-close btn-close-white me-2 fw-bolder m-auto" aria-label="Close"></button>
             </div>
+
         </div>
-    </div>
-    {% elif message.tags == 'error' %}
-    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
-        <div class="toast-container position-fixed top-0 end-0 p-3">
-            <div class="toast show align-items-center text-bg-danger text-white border-0" role="alert"
-                aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body fs-5 fw-semibold">
-                        {{message}}
-                    </div>
-                    <button @click="dismissed=true" type="button"
-                        class="btn-close btn-close-white me-2 fw-bolder m-auto" data-bs-dismiss="toast"
-                        aria-label="Close"></button>
+
+        {% elif message.tags == 'error' %}
+        <div class="toast show align-items-center text-bg-danger text-white border-0" role="alert" aria-live="assertive"
+            aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
+            <div class="d-flex">
+                <div class="toast-body fs-5 fw-semibold">
+                    {{message}}
                 </div>
-
+                <button @click="dismissed{{ forloop.counter }}=true" type="button"
+                    class="btn-close btn-close-white me-2 fw-bolder m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
             </div>
+
         </div>
-    </div>
-    {% elif message.tags == 'warning' %}
-    <div x-data="{dismissed:false}" x-show="!dismissed" x-init="setTimeout(()=> dismissed=true,5000)">
-        <div class="toast-container position-fixed top-0 end-0 p-3">
-            <div class="toast show align-items-center text-bg-warning border-0" role="alert" aria-live="assertive"
-                aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body fs-5 fw-semibold">
-                        {{message}}
-                    </div>
-                    <button @click="dismissed=true" type="button"
-                        class="btn-close btn-close-white me-2 fw-bolder m-auto" data-bs-dismiss="toast"
-                        aria-label="Close"></button>
+        {% elif message.tags == 'warning' %}
+        <div class="toast show align-items-center text-bg-warning border-0" role="alert" aria-live="assertive"
+            aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
+            <div class="d-flex">
+                <div class="toast-body fs-5 fw-semibold">
+                    {{message}}
                 </div>
-
+                <button @click="dismissed{{ forloop.counter }}=true" type="button"
+                    class="btn-close btn-close-white me-2 fw-bolder m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
             </div>
+
         </div>
     </div>
-    {% endif %}
+</div>
 
 
-    {% endfor %}
+{% endif %}
+
+
+{% endfor %}
+</div>
+</div>

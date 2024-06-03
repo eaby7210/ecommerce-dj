@@ -13,69 +13,71 @@
 </div>
 
 <div class="container emp-profile">
-    <form method="post">
-        <div class="row">
-            <div class="col-md-10">
-                <div class="profile-head">
-                    <h3>
-                        {{customer.user.first_name}} {{customer.user.last_name}}
-                    </h3>
-                    <h6>
-                        {{member_text}} Member
-                    </h6>
 
-                    <ul class="nav nav-tabs my-3 justify-content-around" id="myTab" role="tablist">
-                        <li class="nav-item">
+    <div class="row">
+        <div class="col-md-10">
+            <div class="profile-head">
+                <h3>
+                    {{customer.user.first_name}} {{customer.user.last_name}}
+                </h3>
+                <h6>
+                    {{member_text}} Member
+                </h6>
 
-                            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
-                                type="button" role="tab" aria-controls="home" aria-selected="true">
-                                About
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button hx-get="{%url 'u-address-list'%}" hx-target="#address-section" hx-trigger="click"
-                                class="nav-link" id="address-tab" data-bs-toggle="tab" data-bs-target="#address"
-                                type="button" role="tab" aria-controls="address" aria-selected="true">
-                                Address
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button hx-get="{%url 'u-order-list'%}" hx-target="#order-section" hx-trigger="click"
-                                hx-vals='{"mode":"profile"}' class="nav-link" id="order-tab" data-bs-toggle="tab"
-                                data-bs-target="#order" type="button" role="tab" aria-controls="order"
-                                aria-selected="true">
-                                Order
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+                <ul class="nav nav-tabs my-3 justify-content-around" id="myTab" role="tablist">
+                    <li class="nav-item">
 
-        </div>
-        <div class="row">
-
-            <div class="col-md-8">
-                <div class="tab-content profile-tab my-3" id="myTabContent">
-                    <div class="tab-pane fade  show active " id="home" role="tabpanel" aria-labelledby="home-tab">
-                        <div id="about-section" class="row gap-4">
-                            {% include "app/about.html" %}
-                        </div>
-                    </div>
-
-                    <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
-                        <div id="address-section" class="row">
-                            {% include "app/address-list.html" %}
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="order" role="tabpanel" aria-labelledby="order-tab">
-                        <div id="order-section">
-                            {% include "app/order-list.html" %}
-                        </div>
-                    </div>
-                </div>
+                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
+                            type="button" role="tab" hx-push-url="#about-section" aria-controls="home"
+                            aria-selected="true">
+                            About
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button hx-get="{%url 'u-address-list'%}" hx-target="#address-section" hx-trigger="click"
+                            hx-vals='{"mode":"profile"}' hx-push-url="#address-section" class="nav-link"
+                            id="address-tab" data-bs-toggle="tab" data-bs-target="#address" type="button" role="tab"
+                            aria-controls="address" aria-selected="true">
+                            Address
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button hx-get="{%url 'u-order-list'%}" hx-target="#order-section" hx-trigger="click"
+                            hx-vals='{"mode":"profile"}' hx-push-url="#order-section" class="nav-link" id="order-tab"
+                            data-bs-toggle="tab" data-bs-target="#order" type="button" role="tab" aria-controls="order"
+                            aria-selected="true">
+                            Order
+                        </button>
+                    </li>
+                </ul>
             </div>
         </div>
-    </form>
+
+    </div>
+    <div class="row">
+
+        <div class="col-md-8">
+            <div class="tab-content profile-tab my-3" id="myTabContent">
+                <div class="tab-pane fade  show active " id="home" role="tabpanel" aria-labelledby="home-tab">
+                    <div id="about-section" class="row gap-4">
+                        {% include "app/about.html" %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                    <div id="address-section" class="row" hx-ext="response-targets">
+                        {% include "app/address-list.html" %}
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="order" role="tabpanel" aria-labelledby="order-tab">
+                    <div id="order-section">
+                        {% include "app/order-list.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 {% endblock content %}

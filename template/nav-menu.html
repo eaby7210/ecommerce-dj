@@ -135,9 +135,11 @@
 
 
 <li class="wishlist-dropdown dropdown pe-3">
-    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+    <a href="{%url 'u-wishlist-list'%}" class="d-flex flex-row justify-content-center icon-link icon-link-hover"
+        style="--bs-icon-link-transform: translate3d(.125rem, .225rem, 0);">
         <svg class="wishlist">
             <use xlink:href="#heart"></use>
+            <span id="wishcount" class="badge bg-primary rounded-pill">{{wish_count}}</span>
         </svg>
     </a>
     <div class="dropdown-menu animate slide dropdown-menu-start dropdown-menu-lg-end p-3">

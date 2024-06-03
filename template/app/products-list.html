@@ -44,14 +44,21 @@
 
                     </button>
                     {% endif %}
+                    <div id="whishbtn{{item.id}}">
+                        <button hx-post="{%url 'u-wishlist-list'%}"
+                            hx-vals='{"mode":"product_list","product_id":{{item.id}}}' hx-trigger="click"
+                            hx-target="#whishbtn{{item.id}}" type="button" {% if item.wishlist_items.0 %}
+                            class="btn btn-success" {%else%} class="btn btn-secondary" {% endif %}>
+                            <span>
+                                <svg class="wishlist">
 
-                    <a href="#" class="btn btn-secondary">
-                        <span>
-                            <svg class="wishlist">
-                                <use xlink:href="#heart"></use>
-                            </svg>
-                        </span>
-                    </a>
+                                    <use xlink:href="#heart"></use>
+                                </svg>
+                            </span>
+                        </button>
+
+                    </div>
+
                 </div>
             </div>
             {% if item.stock %}

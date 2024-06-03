@@ -1,10 +1,13 @@
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
+from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
 from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from django.core.mail import send_mail,BadHeaderError
 from django.utils import timezone
+from django.contrib import messages
 from .models import EmailOTP
 from store.models import Address
 from rest_framework import serializers
@@ -84,6 +87,38 @@ class EmailOTPSerializer(serializers.ModelSerializer):
     class Meta:
         model=EmailOTP
         fields=['otp']
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password=serializers.CharField(required=True,style={'input_type': 'password'},write_only=True)
+    new_password=serializers.CharField(required=True,style={'input_type': 'password'},write_only=True)
+    confirm_password=serializers.CharField(required=True,style={'input_type': 'password'},write_only=True)
+    
+    def validate_new_password(self,value):
+        validate_password(value)
+        return value
+    
+    def validate(self, attrs):
+        user = self.context['request'].user
+        if not user.check_password(attrs['old_password']):
+            messages.warnig(self.context['request'],"Old password is incorrect")
+            raise serializers.ValidationError(_("Old password is incorrect"))
+        if attrs['new_password'] == attrs['old_password']:
+            messages.warnig(self.context['request'],"Old password and New password are the same.")
+            raise serializers.ValidationError({"confirm_password": _("Old password and New password are the same.")})
+    
+        if attrs['new_password'] != attrs['confirm_password']:
+            messages.warnig(self.context['request'],"The new password fields didn't match.")
+            raise serializers.ValidationError({"confirm_password": _("The new password fields didn't match.")})
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user
+        
+
+    
 
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
@@ -229,8 +264,8 @@ class AddressSerrializer(serializers.ModelSerializer):
         instance.primary = validated_data.get('primary', instance.primary)
         instance.other_details = validated_data.get('other_details', instance.other_details)
         if instance.primary:
-            address=Address.objects.filter(customer=customer,primary=True)
-            for item in address:
+            ol_address=Address.objects.filter(customer=customer,primary=True)
+            for item in ol_address:
                 item.primary=False
                 item.save()
         instance.save()
@@ -243,8 +278,8 @@ class AddressSerrializer(serializers.ModelSerializer):
         print("vali_data: ",validated_data)
         primary=validated_data.get('primary',False)
         if primary:
-            address=Address.objects.filter(customer=customer)
-            for item in address:
+            ol_address=Address.objects.filter(customer=customer,primary=True)
+            for item in ol_address:
                 item.primary=False
                 item.save()
 
@@ -255,4 +290,7 @@ class AddressSerrializer(serializers.ModelSerializer):
         else:
             message=f'You address {address.name} is updated successfully'
             address.save()
-        return address,message
+        if primary:
+            return address,message,ol_address,created
+        else:
+            return address,message,None,created

@@ -1,0 +1,12 @@
+{% load rest_framework %}
+
+{% render_form chgepass %}
+<input type="text" name="mode" id="passmode" value="chnge_pass" hidden>
+<div hx-on="htmx:load: document.getElementById('passform').reset();"></div>
+
+
+
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

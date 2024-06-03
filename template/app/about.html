@@ -5,7 +5,7 @@
             <label>User Id</label>
         </div>
         <div class="col-md-6">
-            <p>{{user.username}}</p>
+            <p>{{customer.user.username}}</p>
         </div>
     </div>
     <div class="row">
@@ -13,7 +13,7 @@
             <label>Name</label>
         </div>
         <div class="col-md-6">
-            <p>{{user.first_name}} {{last_name}}</p>
+            <p>{{customer.user.first_name}} {{customer.last_name}}</p>
         </div>
     </div>
     <div class="row">
@@ -21,7 +21,7 @@
             <label>Email</label>
         </div>
         <div class="col-md-6">
-            <p>{{user.email}}</p>
+            <p>{{customer.user.email}}</p>
         </div>
     </div>
     {% if user.phone %}
@@ -30,7 +30,7 @@
             <label>Phone</label>
         </div>
         <div class="col-md-6">
-            <p>{{user.phone}}</p>
+            <p>{{customer.user.phone}}</p>
         </div>
     </div>
     {% endif %}
@@ -45,7 +45,16 @@
             <p>{{customer.birth_date}}</p>
         </div>
     </div>
+
     {% endif %}
+    <div class="row">
+        <div class="col-md-6">
+            <label>Wallet Balance</label>
+        </div>
+        <div class="col-md-6">
+            <p>{{customer.wallet_balance}}</p>
+        </div>
+    </div>
     {% if user.is_staff %}
     <div class="row">
         <div class="col-md-6">
@@ -57,41 +66,111 @@
     </div>
     {% endif %}
 </div>
-<div class="d-flex flex-row justify-content-end">
-    <button type="button" class="btn btn-secondary align-item-end " data-bs-toggle="modal"
-        data-bs-target="#profilemodal">
+<div id="profile-handler-section" class="d-flex flex-row justify-content-end" x-data="{
+    modalObj:new bootstrap.Modal(document.getElementById('passwordmodal')),
+    hideForm(){
+        this.modalObj.hide();
+    },
+    showForm(){
+        this.modalObj.show();
+    },
+    handleAfterRequest() {
+        const form = document.getElementById('passform');
+        form.addEventListener('htmx:afterRequest', (event) => {
+            console.log('Request finished');
+            console.log('Status:', event.detail.xhr.status);
+            
+
+            if (event.detail.xhr.status === 200) {
+                console.log('Successful response received');
+                this.hideForm();
+                setTimeout(() => {
+                    window.location.href = `/login/`;
+                }, 3000);
+            } else {
+                console.error('Error response received');
+            }
+        });
+    },
+    observeMutations() {
+        const observer = new MutationObserver(() => {
+            this.setupEventListeners();
+        });
+
+        observer.observe(document.getElementById('profile-handler-section'), { childList: true, subtree: true });
+    }                  
+}">
+    <button type="button" class="btn btn-secondary align-item-end me-4" @click="showForm()">
         Edit Profile
     </button>
+    <button type="button" class="btn btn-secondary align-item-end " data-bs-toggle="modal"
+        data-bs-target="#passwordmodal">
+        Change Password
+    </button>
 
-</div>
-
-<!-- Modal trigger button -->
 
 
-<!-- Modal Body -->
-<!-- if you want to close by clicking outside the modal, delete the last endpoint:data-bs-backdrop and data-bs-keyboard -->
-<div class="modal fade" id="profilemodal" tabindex="-1" role="dialog" aria-labelledby="modalTitleId" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitleId">
-                    Edit Profile
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade" id="passwordmodal" tabindex="-1" role="dialog" aria-labelledby="modalTitleId"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document"
+            hx-ext="response-targets">
+            <div class="modal-content" id="profilemodalcontent">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitleId" hx-swap="innerHTML" hx-swap-oob="true">
+                        Change Password
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="change-passModal">
+
+                    <form id="passform" hx-put="{%url 'profile'%}" hx-target-200="#messages-section" hx-swap="innerHTML"
+                        hx-target-400="#pass-alpine" hx-indicator="#indicator">
+                        <div id="pass-alpine">
+                            {% render_form chgepass %}
+
+                            <input type="text" name="mode" id="passmode" value="chnge_pass" hidden>
+                        </div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                        <button id="pass-btn" type="submit" @click="handleAfterRequest()"
+                            class="btn btn-primary">Submit</button>
+                        <div id="indicator" class=" htmx-indicator spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </form>
+
+
+                </div>
             </div>
-            <div class="modal-body">
-                <form>
-                    {% render_form serializer %}
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button hx-put="{%url 'profile'%}" hx-target="#about-section" hx-trigger="click" type="button"
-                        class="btn btn-primary" data-bs-dismiss="modal">Save</button>
-                </form>
+        </div>
+    </div>
+    <div class="modal fade" id="profilemodal" tabindex="-1" role="dialog" aria-labelledby="modalTitleId"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
+            <div class="modal-content" id="profilemodalcontent">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitleId" hx-swap="innerHTML" hx-swap-oob="true">
+                        Edit Profile
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        {% render_form customer_serializer %}
+                        {% render_form user_serializer %}
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                        <button hx-put="{%url 'profile'%}" hx-target="#about-section" hx-trigger="click" type="button"
+                            class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 <section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
     {% include "messages.html" %}
 </section>

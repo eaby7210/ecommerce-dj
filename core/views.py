@@ -1,31 +1,26 @@
 from django.http import HttpResponse
 from django.shortcuts import render,redirect
-from django.core.mail import send_mail,BadHeaderError
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.sessions.models import Session
 from django.contrib import auth
 from rest_framework.permissions import AllowAny
-from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.renderers import TemplateHTMLRenderer,HTMLFormRenderer
+from rest_framework.renderers import TemplateHTMLRenderer
 from .permission import *
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-from store.serializers import BrandDetailsSerializer,CustomerSerializer,CustomerProfileSerializer
+from store.serializers import CustomerSerializer,CustomerProfileSerializer,CustomerProfiledSerializer
 from store.models import Customer
 from allauth.account.models import EmailAddress
-from django.db.models.aggregates import Count
+from django.contrib.auth.hashers import check_password
 from rest_framework import status
 from .serializers import *
 from .models import EmailOTP
 from .filter import *
 from store.models import Address
 User=auth.get_user_model()
-import random
 # Create your views here.
 
 
@@ -160,14 +155,6 @@ class ResendEmailView(APIView):
             return Response(template_name="messages.html",content_type="text/html")
             
 
-                    
-                
-                
-            
-        
-        
-        
-        
 
        
 class LoginAPIView(APIView):
@@ -227,7 +214,7 @@ class HomePageView(APIView):
                 customer,created=Customer.objects.prefetch_related('user').get_or_create(user_id=user.id)
                 if created:
                     messages.info(request,f"{user.username}'s profile is created as Bronze Membership")
-            print("customer: ",customer.user)
+            
             context={
                 "customer":customer,
             }
@@ -242,43 +229,74 @@ class ProfileAPIView(APIView):
     
     def get(self, request):
         customer=self.get_queryset()
-        
+        user=customer.user
         serializer=CustomerSerializer(customer)
         
         context={
-            'serializer':CustomerProfileSerializer(customer),
+            'customer_serializer':CustomerProfiledSerializer(customer),
+            'user_serializer':UserNormalUpdateSerializer(user),
+            'serializer':UserNormalUpdateSerializer(),
             'customer':serializer.data,
+            'chgepass':ChangePasswordSerializer(),
             'member_text':customer.get_membership_display()
         }
         return Response(context,template_name="authentication/profile.html",content_type="text/html")
     def put(self,request):
         customer=self.get_queryset()
         print(request.data)
-        user_data={key.split(".")[1]: value for key, value in request.data.items()  if key.startswith("user.")}
-        customer_data = {key: value for key, value in request.data.items() if not key.startswith("user.")}
-        print("\nuser: ",user_data,"\ncustomer: ",customer_data)
-        user_serializer=UserUpdateSerializer(customer.user,data=user_data,partial=True)
-        if user_serializer.is_valid():
-            serializer=CustomerProfileSerializer(customer,data=customer_data,partial=True)
-            if serializer.is_valid():
-                user_serializer.save()
-                serializer.save()
-                customer_data['user']=user_serializer.data
-                # cache.invalidate_queries(Customer.objects)
-                if getattr(customer, '_prefetched_objects_cache', None):
-                    customer._prefetched_objects_cache = {}
-                messages.success(request,"Profile updated successfully")
+        mode=request.data.get('mode',None)
+        if mode=="chnge_pass":
+            data={key:value for key,value in request.data.items() if key != "mode"}
+            pass_serializer=ChangePasswordSerializer(data=data,context={'request': request})
+            if pass_serializer.is_valid():
+                pass_serializer.save()
+                auth.logout(request)
+                messages.success(request,"Password is changed successfully")
+                messages.info(request,"You will be redicted to login Page to login again")  
+                return Response(template_name="messages.html",content_type="txt/html",status=status.HTTP_200_OK)
+            else:
+                messages.error(request,"Error while changing password")
                 context={
-                    'serializer':CustomerProfileSerializer(customer),
-                    'customer':customer,
-                    'member_text':customer.get_membership_display()
+                    'chgepass':pass_serializer,
                 }
-                return Response(context,template_name="app/about.html",content_type="text/html")
+                print(context)
+                return Response(context,template_name="app/pass-change-form.html",content_type="text/html",status=status.HTTP_400_BAD_REQUEST)
+                    
+        user_data={key: value for key, value in request.data.items()  if bool(key!="birth_date" and key!="mode")}
+        customer_data = {key: value for key, value in request.data.items() if bool(key=="birth_date" and key!="mode")}
+        print("\nuser: ",user_data,"\ncustomer: ",customer_data)
+        user_serializer=UserNormalUpdateSerializer(customer.user,data=user_data,partial=True)
+        customer_serializer=CustomerProfiledSerializer(customer,data=customer_data,partial=True)
+        user_is_valid = user_serializer.is_valid()
+        customer_is_valid = customer_serializer.is_valid()
+        if user_is_valid and customer_is_valid:
+            
+            user_serializer.save()
+            customer_serializer.save()
+            customer_data=customer_serializer.data
+            customer_data['user']=user_serializer.data
+            print("cu:",customer_data)
+            # cache.invalidate_queries(Customer.objects)
+            if getattr(customer, '_prefetched_objects_cache', None):
+                customer._prefetched_objects_cache = {}
+            messages.success(request,"Profile updated successfully")
+            context={
+                'customer_serializer':CustomerProfiledSerializer(customer),
+                'user_serializer':UserNormalUpdateSerializer(customer.user),
+                'serializer':CustomerProfileSerializer(customer),
+                'customer':customer_data,
+                'chgepass':ChangePasswordSerializer(),
+                'member_text':customer.get_membership_display()
+            }
+            return Response(context,template_name="app/about.html",content_type="text/html")
         else:
             messages.error(request,"Please enter valid details")
             context={
-                'serializer':serializer,
+                'user_serializer':user_serializer,
+                'customer_serializer':customer_serializer,
+                'serializer':UserNormalUpdateSerializer(),
                 'customer':customer,
+                'chgepass':ChangePasswordSerializer(),
                 'member_text':customer.get_membership_display()
             }
             return Response(context,template_name="app/about.html",content_type="text/html")
@@ -312,19 +330,50 @@ class AddressViewSet(ModelViewSet,AdressPagination):
         return Address.objects.filter(customer=customer_id)
     
     def list(self, request, *args, **kwargs):
+        mode=None
+        if bool(request.GET):
+            mode=request.GET['mode']
+        if mode=="checkout-form":
+            context={
+                'serializer':self.get_serializer(),
+                'checkout':True
+            }
+            return Response(context,template_name="app/address-add-form.html",content_type="text/html")
+            
         queryset = self.filter_queryset(self.get_queryset())
-
+        
         page = self.paginate_queryset(queryset)
+        print(page)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             response= self.get_paginated_response(serializer.data)
-            return response
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+            if mode=="profile":
+                return response
+            elif mode=="checkout-list":
+                response.template_name="app/checkout-address-list.html"
+                response.content_type="text/html"
+                return response
     def retrieve(self, request, *args, **kwargs):
-        
-        mode=request.GET['mode']
+        mode=None
+        if bool(request.GET):
+            mode=request.GET['mode']
+        if mode=='checkout-primary':
+            try:
+                instance=Address.objects.get(primary=True,customer=self.get_customer_id().id)
+            except Address.DoesNotExist as e:
+                messages.warning(request,"There is no primary saved address in your profile,<br> Please add or select any other address")
+            serializer=self.get_serializer(instance)
+            context={
+                'address':serializer.data
+            }
+            return Response(context,template_name="app/checkout-address.html",content_type="text/html")
+        elif mode=="checkout-other":
+            instance=Address.objects.get(id=request.GET['address'])
+            serializer=self.get_serializer(instance)
+            context={
+                'address':serializer.data
+            }
+            return Response(context,template_name="app/checkout-address.html",content_type="text/html")
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         if mode=='delete':
@@ -346,15 +395,22 @@ class AddressViewSet(ModelViewSet,AdressPagination):
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             
-            instance,message=serializer.save()
+            instance,message,p_address,created=serializer.save()
             messages.success(request,message)
             if mode=="checkout":
-                return Response(template_name="app/address-list.html",content_type='text/html',status=status.HTTP_201_CREATED)
+                context={
+                    'address':instance
+                }
+                return Response(context,template_name="app/checkout-address.html",content_type='text/html',status=status.HTTP_201_CREATED)
             elif mode=="address":
-                return redirect('u-address-list')
+                return Response(
+                    {'address':instance,'p_addess':p_address,'created':created},
+                                template_name="app/address-items.html",content_type='text/html',
+                                status=status.HTTP_201_CREATED
+                                )
         else:
-            messages.success(request,"Please enter valid address data")
-            return redirect('u-address-list')
+            messages.warning(request,"Please enter valid address data")
+            return Response({'serializer':serializer},template_name="app/address-add-form.html",content_type='text/html',status=status.HTTP_400_BAD_REQUEST)
     
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -393,7 +449,14 @@ class AddressViewSet(ModelViewSet,AdressPagination):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return HttpResponse("")
+        messages.warning(request,f"Address: {instance.name} deleted Succesfully")
+        if instance.primary==True:
+            address=self.get_queryset()[0]
+            address.primary=True
+            address.save()
+            messages.info(request,f"{address.name} has set to primary address")
+            return Response({'address':address},template_name='app/address-primary-update.html',content_type="text/html")
+        return Response(template_name="app/nav-update.html",content_type="text/html")
     
 
 

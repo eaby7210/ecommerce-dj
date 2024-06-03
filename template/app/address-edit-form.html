@@ -18,7 +18,7 @@
 {% endif %}
 {% if error %}
 <button type="button" hx-get="{%url 'u-address-list'%}" hx-target="#address-section" hx-trigger="click"
-    class="btn btn-primary my-4">Go To Address list</button>
+    hx-vals='{"mode":"profile"}' class="btn btn-primary my-4">Go To Address list</button>
 {% endif %}
 <section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
     {% include "messages.html" %}

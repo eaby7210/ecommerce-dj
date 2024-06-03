@@ -9,8 +9,7 @@
         {% if cart_count != 0 %}
 
 
-        <button hx-get="{%url 'u-cart-list'%}" hx-vals='{"mode":"checkout"}' hx-target="#main" hx-trigger="click"
-            type="button" id="checkbtn" class="btn btn-dark ">Go To Checkout</button>
+        <a href="{%url 'checkout'%}" type="button" id="checkbtn" class="btn btn-dark ">Go To Checkout</a>
         {% endif %}
     </div>
     {% for item in results %}

@@ -1,8 +1,4 @@
 <div class="card-header">
-    Order Id: {{item.id}}
-</div>
-<div class="card-body">
-
     <div class="row">
         <div class="col">
             <h5 class="card-title">{{item.product.title}}</h5>
@@ -19,6 +15,10 @@
             {% endif %}
         </div>
     </div>
+</div>
+<div class="card-body">
+
+
     <div id="itemdetails{{item.id}}" class="card-text mx-2 row gap-5 text-center">
         <span class="col">Quantity: {{item.quantity}}</span>
         <span class="text-center col">Total Price: ${{item.total_price}}</span>

@@ -1,0 +1,23 @@
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Coupon Applied: {{coupon.name}}</h4>
+        <p class="card-text">{{coupon.discount}}% OFF</p>
+        <button hx-delete="{%url 'coupon-check'%}" hx-trigger="click" hx-target="#coupon-form-section"
+            hx-vals='{"total":{{total}}}' type="button" class="btn btn-secondary btn-sm">Remove</button>
+    </div>
+</div>
+
+<div id="coupon-section" hx-swap="innerHTML" hx-swap-oob="true">
+    <input type="text" name="coupon" value="{{coupon.code}}" hidden>
+</div>
+<span id="grand_total" hx-swap="innerHTML" hx-swap-oob="true">${{final_total}}
+    <p class="d-flex flex-row justify-content-between">
+        <span class="text-decoration-line-through">${{total}} </span>
+        <span class="text-end text-success">You
+            saved:${{discount_amt}}</span>
+    </p>
+</span>
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

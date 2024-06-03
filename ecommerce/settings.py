@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'rest_framework',
+    'razorpay',
+    'django_htmx',
     # 'debug_toolbar',
     'allauth',
     'allauth.account',
@@ -64,8 +66,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
-     'allauth.account.middleware.AccountMiddleware',
+    #'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
@@ -200,6 +203,9 @@ EMAIL_HOST_PASSWORD = "iomzoayxjpqudsrz"
 EMAIL_USE_TLS = True 
 
 
+#razorpar
+RAZORPAY_ID='rzp_test_XqEMlS82BGA5ki'
+RAZORPAY_ACCOUNT_ID='mDSlw9kn3UIrTNZLe6rk3HJh'
 # DJOSER={
 #     'CREATE_SESSSION_ON_LOGIN':True,
 #     'SERIALIZERS':{

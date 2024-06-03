@@ -1,0 +1,48 @@
+<form class="container-fluid" hx-get="{%url 'u-address-detail' pk=1%}" hx-include="this" hx-target="#address-card">
+    <div class="btn-group-vertical container" role="group" aria-label="Vertical radio toggle button group">
+        {% for address in results %}
+
+
+        {% if address.primary %}
+        <input type="radio" class="btn-check" name="address" id="address{{address.id}}" value="{{address.id}}"
+            autocomplete="off" checked>
+        {%else%}
+        <input type="radio" class="btn-check" name="address" id="address{{address.id}}" value="{{address.id}}"
+            autocomplete="off">
+        {% endif %}
+
+        <label class="btn btn-outline-secondary" for="address{{address.id}}">
+
+
+
+            <div class="card-title d-flex flex-row justify-content-between">
+
+                <h5 class="">{{address.name}}</h5>
+                {% if address.primary %}
+                <p class="text-end text-warning">Primary Address</p>
+                {% endif %}
+
+            </div>
+
+            <h6 class="h6 text-capitalize card-title">{{address.state}}, {{address.city}}</h6>
+            <h6 class="h6 fw-normal card-text">pin: {{address.pin}}</h6>
+        </label>
+
+
+
+
+        {% endfor %}
+    </div>
+    <input type="text" name="mode" value="checkout-other" hidden>
+    <div class="card-footer" id="card-footer">
+        <button type="button" class="btn btn-outline-warning my-3" data-bs-dismiss="modal"
+            hx-get="{%url 'u-address-detail' pk=1%}" hx-vals='{"mode":"checkout-primary"}' hx-target="#address-card"
+            hx-trigger="click">Go back</button>
+        <button type="submit" id="submit-btn" class="btn btn-dark">Deliver to this
+            Address</button>
+
+    </div>
+</form>
+
+<button type="submit" id="order-submit" class="btn btn-dark align-self-end" hx-swap="outerHTML" hx-swap-oob="true"
+    disabled>Place Order</button>

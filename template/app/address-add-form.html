@@ -1,17 +1,38 @@
 {% load rest_framework %}
-<form>
-    {% csrf_token %}
+{% if not included %}
+<div class="modal-body" id="address-add-form">
+    {% endif %}
+    <form>
+        {% csrf_token %}
 
-    {% render_form serializer %}
-    <input id="address-mode" type="text" name="mode" value="address" hidden>
+        {% render_form serializer %}
 
-    <button type="button" class="btn btn-secondary my-3" data-bs-dismiss="modal">Close</button>
+        {% if checkout %}
+        <input id="address-mode" type="text" name="mode" value="checkout" hidden>
+        <button type="button" class="btn btn-dark my-3" data-bs-dismiss="modal" hx-get="{%url 'u-address-detail' pk=1%}"
+            hx-vals='{"mode":"checkout-primary"}' hx-target="#address-card" hx-trigger="click">Go back</button>
 
-    <button type="submit" data-bs-dismiss="modal" hx-post="{%url 'u-address-list'%}" hx-trigger="click"
-        hx-target="#address-section" hx-include="#address-mode" class="btn btn-primary my-3">Save Address</button>
+        <button type="submit" data-bs-dismiss="modal" hx-post="{%url 'u-address-list'%}" hx-trigger="click"
+            hx-target="#address-card" hx-include="#address-mode" class="btn btn-primary my-3">Save Address</button>
+        <button type="submit" id="order-submit" class="btn btn-dark align-self-end" hx-swap="outerHTML"
+            hx-swap-oob="true" disabled>Place Order</button>
 
-</form>
+        {%else%}
+        <input id="address-mode" type="text" name="mode" value="address" hidden>
+        <button type="button" @click="hideForm()" class="btn btn-secondary my-3">Close</button>
 
+        <button id="save-btn" type="button" hx-ext="response-target" hx-post="{%url 'u-address-list'%}"
+            hx-trigger="click" hx-target="#address-slot" hx-target-error="#address-add-form" hx-include="#address-mode"
+            hx-swap="outerHTML" class=" btn btn-primary my-3">Save
+            Address</button>
+
+        {% endif %}
+
+
+    </form>
+    {% if not included %}
+</div>
+{% endif %}
 <section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
     {% include "messages.html" %}
 </section>

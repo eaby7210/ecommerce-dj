@@ -9,5 +9,5 @@ class IsActive(permissions.BasePermission):
             user=User.objects.get(pk=request.user.id)
         except:
             user=None
-            
-        return bool(user and request.user.is_active)
+        bo=bool(user and request.user.is_active)
+        return bo

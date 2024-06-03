@@ -3,17 +3,7 @@
     <form action="{%url 'u-order-list'%}" method="post">
         {% csrf_token %}
         {% render_form serializer %}
-        <!-- <div class="d-flex flex-row ">
-            <label for="" class="form-label me-3 align-self-center">Address: </label>
-            <select class="form-select form-select-lg" name="address" id="">
-                <option selected>Select one</option>
-                <option value="">New Delhi</option>
-                <option value="">Istanbul</option>
-                <option value="">Jakarta</option>
-            </select>
 
-            <button class="btn btn-primary" type="button">Add Address</button>
-        </div> -->
 
 
         <button type="submit" class="btn btn-dark my-3 align-items-end">Place order</button>

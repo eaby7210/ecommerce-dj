@@ -1,0 +1,8 @@
+{% load rest_framework %}
+<div id="addCouponSerializer" hx-swap="innerHTML" hx-swap-oob="true">
+    {% render_form serializer %}
+</div>
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

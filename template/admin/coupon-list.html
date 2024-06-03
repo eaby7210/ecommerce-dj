@@ -1,0 +1,98 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+{% block menu %}
+{% include "admin/admin-nav.html" %}
+{% endblock menu %}
+
+{% block content %}
+
+
+<div class="container accordion" id="accordionFlushExample">
+    <h3 class="mb-4">Coupon Management</h3>
+    <div class="accordion-item mb-2">
+        <h2 class="accordion-header" id="flush-addCoupon">
+            <button class="btn btn-dark accordion-button collapsed rounded" type="button" data-bs-toggle="collapse"
+                data-bs-target="#flush-couponCollapse" aria-expanded="true" aria-controls="flush-couponCollapse">
+                Add Coupon
+            </button>
+        </h2>
+        <div id="flush-couponCollapse" class="accordion-collapse collapse" aria-labelledby="flush-addCoupon"
+            data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+                <form id="couponAddForm" hx-post="{%url 'admin-coupon-list'%}" hx-target="#couponTbody"
+                    hx-swap="afterbegin" hx-on="htmx:afterRequest: resetForm()">
+                    <div id="addCouponSerializer">
+                        {% render_form serializer %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add Coupon</button>
+                    </div>
+                </form>
+                <script>
+                    function resetForm() {
+                        document.getElementById("couponAddForm").reset();
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item mb-2">
+        <h2 class="accordion-header" id="flush-headingOne">
+            <button class="btn btn-dark rounded accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#flush-collapseOne" aria-expanded="true" aria-controls="flush-collapseOne">
+                Coupon List
+            </button>
+        </h2>
+        <div id="flush-collapseOne" class="accordion-collapse collapse show" aria-labelledby="flush-headingOne"
+            data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+                <table class="table container">
+                    <thead>
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Valid From</th>
+                            <th scope="col">Valid To</th>
+                            <th scope="col">Discount</th>
+                            <th scope="col">Active</th>
+                            <th scope="col">Actions</th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody id="couponTbody">
+                        {% include "admin/coupon-items.html" %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+
+<div class="modal fade" id="couponEdit" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+    aria-labelledby="modalTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content" id="couponModalContent">
+            <h5 class="modal-title" id="modalTitleId">
+                <p class="card-text placeholder-glow">
+                    <span class="placeholder col-7"></span>
+                </p>
+            </h5>
+            <div class="modal-body">
+                <p class="card-text placeholder-glow">
+                    <span class="placeholder col-7"></span>
+                    <span class="placeholder col-4"></span>
+                    <span class="placeholder col-4"></span>
+                    <span class="placeholder col-6"></span>
+                    <span class="placeholder col-8"></span>
+                    <span class="placeholder col-7"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

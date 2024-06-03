@@ -1,0 +1,13 @@
+{% if status %}
+<button hx-post="{%url 'u-wishlist-list'%}" hx-trigger="click" hx-target="#wishbtn"
+    hx-vals='{"mode":"product_page","product_id":{{product_id}}}' class="btn btn-success  tex-center">Wishlist</button>
+{%else%}
+<button hx-post="{%url 'u-wishlist-list'%}" hx-trigger="click" hx-target="#wishbtn"
+    hx-vals='{"mode":"product_page","product_id":{{product_id}}}' class="btn btn-dark  tex-center ">Wishlist</button>
+{% endif %}
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>
+
+
+{% include "app/nav-update.html" %}

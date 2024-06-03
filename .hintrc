@@ -22,15 +22,23 @@
     "axe/aria": [
       "default",
       {
-        "aria-required-parent": "off"
+        "aria-required-parent": "off",
+        "aria-required-children": "off"
       }
     ],
     "axe/structure": [
       "default",
       {
-        "listitem": "off"
+        "listitem": "off",
+        "list": "off"
       }
     ],
-    "meta-viewport": "off"
+    "meta-viewport": "off",
+    "axe/name-role-value": [
+      "default",
+      {
+        "button-name": "off"
+      }
+    ]
   }
 }

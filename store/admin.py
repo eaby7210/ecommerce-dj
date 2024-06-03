@@ -71,18 +71,25 @@ class ProductAdmin(admin.ModelAdmin):
             'all': ['store/styles.css']
         }
         
-            
+class WhishListInline(admin.TabularInline):
+    model=models.WishList           
     
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_editable=['membership'] 
     list_display=['first_name','last_name','membership']
     list_per_page=10
+    inlines=[WhishListInline]
     list_select_related=['user']
     ordering=['user__first_name','user__last_name']
     search_fields=['first_name__istartswith','last_name__istartswith']
     
+@admin.register(models.Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display=['name','code','valid_from','valid_to','discount','active']
+    list_filter=['valid_from','valid_to','discount','active']
     
+
 @admin.register(models.Brand)
 class BrandAdmin(admin.ModelAdmin):
     list_display=['title','products_count']

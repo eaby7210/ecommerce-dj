@@ -1,0 +1,17 @@
+<tr id="row{{coupon.id}}" hx-get="{%url 'nav-update'%}" hx-trigger="load" hx-swap="afterend">
+    <th scope="row">{{coupon.id}}</th>
+    <td>{{coupon.name|capfirst}}</td>
+    <td>{{coupon.valid_from}}</td>
+    <td>{{coupon.valid_to}}</td>
+    <td>{{coupon.discount}}</td>
+    <td>{{coupon.active}}</td>
+
+    <td class="row justify-content-around">
+        <button hx-get="{%url 'admin-coupon-detail' coupon.id%}" hx-target="#couponModalContent" hx-trigger="click"
+            hx-swap="innerHTML" class="btn btn-outline-secondary p-2 col-4 fs-6" data-bs-toggle="modal"
+            data-bs-target="#couponEdit">
+            Edit</button>
+        <!-- <button class="btn btn-danger p-2 col-8 fs-6" type="button" data-bs-toggle="modal"
+            data-bs-target="#modalId{{coupon.id}}">Deactivate</button> -->
+    </td>
+</tr>

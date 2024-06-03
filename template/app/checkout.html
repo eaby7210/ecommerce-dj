@@ -1,23 +1,76 @@
-<h2 class="container mb-4">Checkout</h2>
-<div class="container row mx-auto ">
-    <section id="orderplacement" class="mb-2 col-7">
+{% extends "index.html" %}
+{% load rest_framework %}
 
-    </section>
-    <section class="mt-2 col">
-        <div class="card mb-4" id="cartitem{{item.id}}" hx-get="{%url 'u-order-list'%}" hx-vals='{"mode":"checkout"}'
-            hx-target="#orderplacement" hx-trigger="load">
-            <div class="card-header">
-                In Cart
+{% block content %}
+<h2 class="container mb-4">Checkout</h2>
+<div class="container row row-col-2  mx-auto ">
+    <section class="my-2 col-lg-4 col-sm-12 p-0" id="cartlist">
+        <div class="card mb-4" hx-get="{%url 'u-address-detail' pk=1%}" hx-vals='{"mode":"checkout-primary"}'
+            hx-target="#address-card" hx-trigger="load">
+            <div class="card-header d-flex flex-row justify-content-between">
+                <span>In Cart</span> <a href="{%url 'u-cart-list'%}" class="btn btn-outline-secondary mx-4">Go to
+                    Cart</a>
             </div>
             <ul class="list-group list-group-flush">
-                {% for item in results %}
+                {% for item in cartitems %}
 
                 {% include "app/cart-checkout.html" %}
 
                 {% endfor %}
             </ul>
+            <div class="card-footer">
+                Grand Total: <span id="grand_total">${{grand_total}}</span>
+                <input type="number" name="grand_total" id="grand_input" value="{{grand_total}}" hidden>
+            </div>
         </div>
-        <a href="{%url 'u-cart-list'%}" class="btn btn-outline-secondary mx-4">Go to Cart</a>
+
+
+        <div id="coupon-form-section">
+            {% include "app/coupon-form.html" %}
+
+        </div>
 
     </section>
+
+    <section id="orderplacement" class="mb-2 col">
+        <form action="{%url 'u-order-list'%}" method="post">
+            {% csrf_token %}
+            <div id="address-card">
+                <div class="card mb-3">
+                    <div class="card-header card-header bg-primary">
+                        <h5 class="card-title placeholder-glow">
+                            <span class="placeholder col-6"></span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text placeholder-glow">
+                            <span class="placeholder col-7"></span><span class="placeholder col-4"></span>
+                            <span class="placeholder col-4"></span><span class="placeholder col-6"></span>
+                            <span class="placeholder col-8"></span><span class="placeholder col-7"></span>
+                            <span class="placeholder col-4"></span><span class="placeholder col-4"></span>
+
+                        </p>
+                        <a class="btn btn-primary disabled placeholder-glow col-6" aria-disabled="true"><span
+                                class="placeholder container"></span></a>
+                    </div>
+                </div>
+            </div>
+            <div id="payment-method-card">
+                {% include "app/payment-method.html" %}
+            </div>
+            <div id="coupon-section">
+                <input type="text" name="coupon" value="" hidden>
+            </div>
+            <div id="order-form" class="d-grid gap-2 d-md-flex justify-content-md-between">
+
+
+                <button type="submit" id="order-submit" class="btn btn-dark align-self-end">Place Order</button>
+            </div>
+
+
+        </form>
+    </section>
+
+
 </div>
+{% endblock content%}

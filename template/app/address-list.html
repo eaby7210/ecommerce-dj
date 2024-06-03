@@ -1,31 +1,93 @@
-<div class="col-9">
-
+<div class="col-9" id="addressList">
+    <div id="address-slot"></div>
     {% for address in results %}
 
+    {% include "app/address-items.html" %}
 
-    <div class="card mb-4" id="address{{address.id}}">
-        {% include "app/address-items.html" %}
-    </div>
     {% endfor %}
 
 </div>
-<div class="d-flex flex-row align-items-start justify-content-end col-3">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressform">Add
+<div id="address-right-sec" class="d-flex flex-row align-items-start justify-content-end col-3" x-data="{
+    modalObj: null,
+    init() {
+        this.modalObj = new bootstrap.Modal(document.getElementById('addressform'));
+        this.setupEventListeners();
+    },
+    hideForm(){
+        this.modalObj.hide();
+    },
+    showForm(){
+        this.modalObj.show();
+    },
+    setupEventListeners(){
+        const btn = document.getElementById('save-btn');
+        // Bind 'this' context to the event listener
+        btn.addEventListener('htmx:afterRequest', this.handleAfterRequest.bind(this));
+    },
+    handleAfterRequest(event) {
+        console.log('Request finished');
+        console.log('Status:', event.detail.xhr.status);
+
+        if (event.detail.xhr.status === 201) {
+            console.log('Successful response received');
+            // Reset the form
+            const form = event.target.closest('form');
+            form.reset();
+            // Hide the modal
+            this.hideForm();
+        } else {
+            console.error('Error response received');
+        }
+    },
+    observeMutations() {
+        const observer = new MutationObserver(() => {
+            this.setupEventListeners();
+        });
+
+        observer.observe(document.getElementById('address-right-sec'), { childList: true, subtree: true });
+    }
+}">
+    <button type="button" class="btn btn-primary" @click="showForm()">Add
         Address</button>
-</div>
 
 
 
-<div class="modal fade" tabindex="-1" id="addressform" aria-labelledby="addressPostModal" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Address</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="address-add-form">
-                {% include "app/address-add-form.html" %}
+
+    <div class="modal fade" tabindex="-1" id="addressform" aria-labelledby="addressPostModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="address-add-form">
+                    {% include "app/address-add-form.html" with included=True %}
+                </div>
             </div>
         </div>
     </div>
+
+
+    <div class="modal fade" tabindex="-1" id="addresseditform" aria-labelledby="addressPostModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="address-edit-form">
+                    <p class="placeholder-glow">
+                        <span class="placeholder col-7"></span>
+                        <span class="placeholder col-4"></span>
+                        <span class="placeholder col-4"></span>
+                        <span class="placeholder col-6"></span>
+                        <span class="placeholder col-8"></span>
+                    </p>
+                    <a class="btn btn-primary disabled placeholder col-6" aria-disabled="true"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+<!-- Modal -->

@@ -1,0 +1,12 @@
+<button hx-post="{%url 'u-wishlist-list'%}" hx-vals='{"mode":"product_list","product_id":{{product_id}}}'
+    hx-trigger="click" hx-swap="outerHTML" hx-target="#whishbtn{{product_id}}" {% if status %} class="btn btn-success"
+    {%else%} class="btn btn-secondary" {% endif%} id="whishbtn{{product_id}}" type="button">
+    <span>
+        <svg class="wishlist">
+
+            <use xlink:href="#heart"></use>
+        </svg>
+    </span>
+</button>
+
+{% include "app/nav-update.html" %}

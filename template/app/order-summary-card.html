@@ -1,0 +1,151 @@
+<div class="card my-3" id="ordercard">
+    <div class="card-header d-flex flex-row justify-content-between">
+        <h4>Id:{{order.id}}</h4>
+    </div>
+    <div class="d-flex flex-row justify-content-around bg-secondary text-center">
+        <h5>Status:</h5>
+        <p>Paym</p>
+        <p>payment: {{order.payment_status}}</p>
+        <p>order: {{order.order_status}}</p>
+    </div>
+    <div class="card-body">
+
+        <div class="row">
+            <h5 class="col">Delivering Address: </h5>
+            {% if order.address.primary %}
+            <h5 class="col">{{order.address.name}}</h5>
+            <p class="col text-end text-danger">Primary Address</p>
+            {%else%}
+            <h5>{{order.address.name}}</h5>
+            {% endif %}
+        </div>
+        <h6 class="h6 text-capitalize card-title">{{order.address.state}}, {{order.address.city}}</h6>
+        <h6 class="h6 fw-normal card-text">pin: {{order.address.pin}}</h6>
+        <p class="card-subtitle">{{order.address.other_details}}</p>
+    </div>
+    <div class="card" x-data="{
+        modalTitle: '',
+        modalQuantity: '',
+        modalUnitPrice: '',
+        modalStatus: '',
+        modalImage: '',
+        itemId:'',
+        modal: new bootstrap.Modal(document.getElementById('returnmodal')),
+        hide() {
+            this.modal.hide();
+        },
+        showReturnModal(title, quantity, image,id) {
+            this.modalTitle = title;
+            this.modalQuantity = quantity;
+            this.itemId=id
+            this.modalImage = image;
+            this.modal.show();
+        }
+    }">
+        {% for item in order.items %}
+        <div class="card-body">
+            <div class="d-flex flex-row justify-content-between">
+                <h4 class="card-title">{{item.product.title}}</h4>
+                <p class="card-text">Quantity: {{item.quantity}}</p>
+                <p class="card-text">Unit Price: {{item.product.unit_price}}</p>
+                <div class="col-1"><img class="img-fluid" src="/media/{{item.product.image}}" alt="Product Image"></div>
+            </div>
+            <div class="d-flex flex-row justify-content-between">
+                <p class="card-text">Status: {{item.str_status}}</p>
+            </div>
+            {% if item.status == 'D' %}
+            <div class="d-flex flex-row justify-content-end gap-5">
+                <button
+                    @click="showReturnModal('{{item.product.title}}', '{{item.quantity}}', '/media/{{item.product.image}}','{{item.id}}',)"
+                    class="btn btn-danger" type="button">
+                    Return
+                </button>
+            </div>
+            {% endif %}
+            <hr>
+        </div>
+        {% endfor %}
+
+        <div class="modal fade" id="returnmodal" tabindex="-1" role="dialog" aria-labelledby="modalTitleId"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitleId">Return Item</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex flex-row justify-content-center">
+                            <div class="col-7">
+                                <h5 class="">Are you sure to return the given Item?</h5>
+                                <p class="">Product: <span x-text="modalTitle"></span></p>
+                                <p class="">Quantity: <span x-text="modalQuantity"></span></p>
+                            </div>
+                            <div class="col">
+                                <img :src="modalImage" alt="Product image" class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <form hx-put="{%url 'u-order-detail' order.id%}" hx-target="#ordercard" hx-swap="outerHTML">
+                            <input type="text" name="mode" value="return" hidden>
+                            <input type="text" name="itemid" x-bind:value="itemId" hidden>
+                            <button @click="hide()" type="submit" class="btn btn-danger">Return</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer d-flex flex-row justify-content-between">
+        <div>
+            <h5>Total: ${{order.total}}</h5>
+            <h4>Grand Total: ${{order.grand_total}}</h4>
+        </div>
+
+        <div class="d-flex flex-row justify-content-between gap-4">
+            {% if order.payment_status == 'Failed' %}
+            <button hx-put="{%url 'u-order-detail' order.id %}" hx-vals='{"mode":"retry_{{order.payment_method}}"}'
+                hx-trigger="click" hx-target="#ordercard" hx-swap="outerHTML" class="btn btn-danger" type="button">Retry
+                Payment</button>
+            {% endif %}
+
+            {% if order.order_status == 'Placed' %}
+            <button class="btn btn-danger" type="button" data-bs-toggle="modal"
+                data-bs-target="#cancelmodal">Cancel</button>
+
+            <div class="modal fade" id="cancelmodal" tabindex="-1" role="dialog" aria-labelledby="modalTitleId"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalTitleId">
+                                Cancel the Order
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">Are you sure to cancel this Order({{order.id}})</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Close
+                            </button>
+                            <button type="button" hx-put="{%url 'u-order-detail' order.id %}"
+                                hx-vals='{"mode":"cancel"}' hx-trigger="click" hx-target="#ordercard"
+                                hx-swap="outerHTML" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

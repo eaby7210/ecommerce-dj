@@ -1,0 +1,24 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+
+{% block content %}
+
+<section class="container mt-2">
+
+    <div class="d-flex my-3 justify-content-between">
+        <h3 class="">Your Wishlist</h3>
+
+
+
+        <a href="{%url 'u-cart-list'%}" type="button" id="checkbtn" class="btn btn-dark ">Go To Cart</a>
+    </div>
+    <div class="row row-cols-3 gap-3">
+        {% include "app/wishlist-items.html" %}
+    </div>
+
+</section>
+{% endblock content %}
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>
