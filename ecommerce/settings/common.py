@@ -171,11 +171,6 @@ SOCIALACCOUNT_PROVIDERS={
 }
 
 
-SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=2),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-}
 AUTH_USER_MODEL= 'core.USER'
 
 # For password reset 
@@ -184,13 +179,3 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 
 EMAIL_USE_TLS = True 
-
-
-
-# DJOSER={
-#     'CREATE_SESSSION_ON_LOGIN':True,
-#     'SERIALIZERS':{
-#         'user_create':'core.serializers.UserCreateSerializer',
-#         'current_user':'core.serializers.UserSerializer'
-#     }
-# }

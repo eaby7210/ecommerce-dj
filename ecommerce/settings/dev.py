@@ -1,29 +1,35 @@
 from .common import *
+from dotenv import dotenv_values
+
+
+data=dotenv_values()
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = []
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qy+vs#(+2%9$d@_q#hc2n0+u18kxmg24ax-!7jz+w^%qvz^nsl'
+SECRET_KEY = data.get('SECRET_KEY')
 
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'storefront',
-        'HOST': 'localhost',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'port':'5432'
+        'ENGINE': data.get('DB_ENGINE'),
+        'NAME': data.get('DB_NAME'),
+        'HOST': data.get('DB_HOST'),
+        'USER': data.get('DB_USER'),
+        'PASSWORD': data.get('DB_PASSWORD'),
+        'port':data.get('DB_PORT')
     }
 }
 
 
-EMAIL_HOST = 'smtp.gmail.com' 
-EMAIL_PORT = 587 
-EMAIL_HOST_USER = 'eaby7210@gmail.com'  
-EMAIL_HOST_PASSWORD = "iomzoayxjpqudsrz" 
+EMAIL_HOST = data.get('EMAIL_HOST')
+EMAIL_PORT = data.get('EMAIL_PORT')
+EMAIL_HOST_USER = data.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = data.get('EMAIL_HOST_PASSWORD')
 
 #razorpar
-RAZORPAY_ID='rzp_test_XqEMlS82BGA5ki'
-RAZORPAY_ACCOUNT_ID='mDSlw9kn3UIrTNZLe6rk3HJh'
+RAZORPAY_ID=data.get('RAZORPAY_ID')
+RAZORPAY_ACCOUNT_ID=data.get('RAZORPAY_ACCOUNT_ID')
