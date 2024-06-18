@@ -1,10 +1,346 @@
-{% extends "index.html" %}
-{% load rest_framework %}
-{% block menu %}
-{% include "admin/admin-nav.html" %}
-{% endblock menu %}
+{% extends "index.html" %} {% load rest_framework %} {% block menu %}
+{% include "admin/admin-nav.html" %} {% endblock menu %} {% block content %}
+<section class="container">
+    <div class="d-flex flex-row justify-content-between">
+        <h2>Dashboard</h2>
+        <div>
+            <form id="pdf-form" hx-get="{% url 'dashboard' %}?mode=pdfgen" hx-target="this" hx-swap="none">
+                <button type="submit" class="btn btn-dark">PDF
+                    Report</button>
+            </form>
 
-{% block content %}
+        </div>
+    </div>
 
+
+    <div class="accordion" id="dashboardaccord">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="dashboard">
+                <button class="accordion-button btn collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#dashboardCounts" aria-expanded="false" aria-controls="dashboardCounts">
+                    <h4>Details</h4>
+                </button>
+            </h2>
+            <div id="dashboardCounts" class="accordion-collapse collapse" aria-labelledby="dashboard"
+                data-bs-parent="#dashboardaccord">
+                <div class="accordion-body">
+                    <div class="container-fluid">
+                        <!-- Orders Section -->
+                        <div class="row row-cols-4 gap-5 my-4 justify-content-center">
+                            <!-- Users Section -->
+                            <div class="col-4 card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Users</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item">
+                                                <span>Total Users:</span>
+                                                <span>{{ user_count }}</span>
+                                            </li>
+                                            <li class="list-group-item">
+                                                <span>Active Users:</span>
+                                                <span>{{ active_user_count }}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Membership Counts -->
+                            <div class="col card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Membership Counts</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            {% for membership in membership_counts %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>{{ membership.membership_display }}</span>
+                                                <span>{{ membership.count }} members</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method Counts -->
+                            <div class="col card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Payment Method Counts</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            {% for payment_method in payment_method_counts %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>{{ payment_method.payment_method_display }}</span>
+                                                <span>{{ payment_method.count }} orders</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Orders -->
+                            <div class="col-4 card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Orders</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Total Order Count:</span>
+                                                <span>{{ order_count }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Orders to Process:</span>
+                                                <span>{{ order_to_process }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Orders with Coupons:</span>
+                                                <span>{{ orders_with_coupons }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Orders without Coupons:</span>
+                                                <span>{{ orders_without_coupons }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Total Order Value:</span>
+                                                <span>{{ total_order_value }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>Average Order Value:</span>
+                                                <span>{{ average_order_value }}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order Status Counts -->
+                            <div class="col card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Order Status Counts</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            {% for status in status_counts %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>{{ status.order_status_display }}</span>
+                                                <span>{{ status.count }} orders</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order Item Status Counts -->
+                            <div class="col card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Order Item Status Counts</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            {% for status in order_item_status_counts %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>{{ status.status_display }}</span>
+                                                <span>{{ status.count }} items</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Most Ordered Products -->
+                            <div class="col card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Most Ordered Products</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            {% for product in most_ordered_products %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>{{ product.product__title }}</span>
+                                                <span>{{ product.count }} orders</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top Brands -->
+                            <div class="col card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Top Brands</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            {% for brand in top_brands %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>{{ brand.product__brand__title }}</span>
+                                                <span>{{ brand.total_orders }} orders</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top Categories -->
+                            <div class="col card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Top Categories</h4>
+                                    <div class="list-group-item">
+                                        <ul class="list-group list-group-flush">
+                                            {% for category in top_categories %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>{{ category.product__category__title }}</span>
+                                                <span>{{ category.total_orders }} orders</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="dashboard">
+                <button class="accordion-button btn" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#dashboardCharts" aria-expanded="true" aria-controls="dashboardCharts">
+                    <h4>Charts</h4>
+                </button>
+            </h2>
+            <div id="dashboardCharts" class="accordion-collapse collapse show" aria-labelledby="dashboard"
+                data-bs-parent="#dashboardaccord">
+                <div class="accordion-body">
+                    <div class="text-center" x-data="{ activeTab: 'month' }">
+
+                        <ul class=" container-fluid card nav nav-pills flex-row">
+                            <li class="nav-item me-3">
+                                <a class=" nav-link" :class="{ 'active': activeTab === 'month' }"
+                                    @click="activeTab = 'month'" href="#">Order Per Month</a>
+                            </li>
+                            <li class="nav-item me-3">
+                                <a class="nav-link  " :class="{ 'active': activeTab === 'year' }"
+                                    @click="activeTab = 'year'" href="#">Order Per Year</a>
+                            </li>
+
+                        </ul>
+
+                        <div class="container-fluid" id="chart-container">
+                            <canvas class="bg-white" id="order_month_chart" x-show="activeTab === 'month'"></canvas>
+                            <canvas class="bg-white" id="order_year_chart" x-show="activeTab === 'year'"></canvas>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', (event) => {
+                                    // Order Per Month Chart
+                                    const months_List = JSON.parse('{{months_list}}');
+                                    const month_counts = JSON.parse('{{m_orders_count| safe }}');
+
+                                    const monthCtx = document.getElementById('order_month_chart').getContext('2d');
+                                    new Chart(monthCtx, {
+                                        defaults: {
+                                            backgroundColor: '#fff',
+                                            borderColor: '#36A2FF',
+                                            color: '#000'
+                                        },
+                                        type: 'line',
+                                        data: {
+                                            labels: months_List,
+                                            datasets: [{
+                                                label: 'Orders per Month',
+                                                data: month_counts,
+                                                backgroundColor: 'rgba(0,0,0, 0.2)',
+                                                borderColor: 'rgba(75, 192, 192, 1)',
+                                                borderWidth: 1
+                                            }]
+                                        },
+                                        options: {
+                                            scales: {
+                                                y: {
+                                                    beginAtZero: true,
+                                                    title: {
+                                                        display: true,
+                                                        text: "Number Of Orders"
+                                                    }
+                                                },
+                                                x: {
+                                                    beginAtZero: true,
+                                                    title: {
+                                                        display: true,
+                                                        text: "Months"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+
+                                    // Order Per Year Chart
+                                    const years = JSON.parse('{{years_list}}');
+                                    const year_counts = JSON.parse('{{y_order_count| safe }}');
+
+                                    const yearCtx = document.getElementById('order_year_chart').getContext('2d');
+                                    new Chart(yearCtx, {
+                                        defaults: {
+                                            backgroundColor: '#fff',
+                                            borderColor: '#36A2FF',
+                                            color: '#000'
+                                        },
+                                        type: 'bar',
+                                        data: {
+                                            labels: years,
+                                            datasets: [{
+                                                label: 'Orders per Year',
+                                                data: year_counts,
+                                                backgroundColor: 'rgba(0,0,0, 0.2)',
+                                                borderColor: 'rgba(75, 192, 192, 1)',
+                                                borderWidth: 1
+                                            }]
+                                        },
+                                        options: {
+                                            scales: {
+                                                y: {
+                                                    beginAtZero: true,
+                                                    title: {
+                                                        display: true,
+                                                        text: "Number Of Orders"
+                                                    }
+                                                },
+                                                x: {
+                                                    beginAtZero: false,
+                                                    title: {
+                                                        display: true,
+                                                        text: "Years"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                });
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+
+
+
+
+
+</section>
 
 {% endblock content %}
+{% block footer %}
+
+{% endblock footer %}

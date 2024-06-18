@@ -339,6 +339,24 @@ aside .sidebar .section-title h3::after {
 /*--------------------------------------------------------------
 /** 3.1 Form Control
 --------------------------------------------------------------*/
+.form-group {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.form-group .help-block {
+  grid-column: 2; /* Make the help-block span the second column */
+  font-size: 0.9em;
+  color: #937a7a;
+}
+.form-group .checkbox {
+  grid-column: 2;
+}
+label {
+  text-align: right;
+  margin-right: 10px;
+}
 .form-control {
   padding: 1rem;
   font-size: 21px;

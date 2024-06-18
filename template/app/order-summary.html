@@ -5,7 +5,15 @@
 
 
 <section class="container">
-    <h3>Your order summary</h3>
+    <div class="d-flex fex-row justify-content-between">
+        <h3>Your order summary</h3>
+        <div class="pdfgen">
+            <form id="pdf-form" hx-get="{% url 'u-order-detail' pk=order.id %}?mode=pdfgen" hx-target="this"
+                hx-swap="none">
+                <button type="submit" class="btn btn-dark">Download PDF Invoice</button>
+            </form>
+        </div>
+    </div>
     {% include "app/order-summary-card.html" %}
 
 

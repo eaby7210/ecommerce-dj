@@ -1,0 +1,52 @@
+<canvas class="bg-white order_month_chart" id="order_month_chart">sdfgsdfg</canvas>
+
+
+
+<script>
+    htmx.onLoad(function (content) {
+
+        const years = JSON.parse('{{ years }}');
+        const counts = JSON.parse('{{ counts| safe}}');
+
+        const ctx = document.querySelector('.order_month_chart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            defaults: {
+                backgroundColor: '#fff',
+                borderColor: '#36A2FF',
+                color: '#000'
+            },
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Years',
+                    data: counts,
+                    backgroundColor: 'rgba(0,0,0, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: "Number Of Orders"
+                        }
+                    },
+                    x: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: "Years"
+                        }
+                    }
+                }
+            }
+        });
+
+
+
+    })
+</script>

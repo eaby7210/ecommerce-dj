@@ -19,7 +19,7 @@ from rest_framework import status
 from .serializers import *
 from .models import EmailOTP
 from .filter import *
-from store.models import Address
+from store.models import Address,Banner
 User=auth.get_user_model()
 # Create your views here.
 
@@ -45,7 +45,6 @@ class SignupAPIView(APIView):
         if serializer.is_valid():
             with transaction.atomic():
                 user=serializer.user_data(request)
-                user.is_active=False
                 user.save()
                 email_otp(user)
                 messages.success(request, "Account created successfully! An OTP is sent to your Email")
@@ -171,27 +170,29 @@ class LoginAPIView(APIView):
         
     def post(self, request, *args, **kwargs):
         serializer = UserLoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = auth.authenticate(request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
-        # print(user.is_active,user.is_staff)
-        if bool(user and user.is_staff):
-            auth.login(request,user)
-            messages.info(request,message='Logged in as admin succesfully')
-            return redirect('dashboard')
-        elif bool(user and user.is_active):
-            print("admin:")
-            auth.login(request,user)
-            messages.info(request,message='Logged in succesfully')
-            return redirect('/')
-        elif bool(user and not user.is_active):
-            messages.info(request,message='User is Blocked by Admin')
-            return Response({'serializer':serializer,'error': 'User is Blocked by Admin'},template_name='authentication/login.html',content_type='text/html')
-        
-        else:
-            messages.error(request,'Invalid credentials')
+        if serializer.is_valid():
+            user = auth.authenticate(request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
+            # print(user.is_active,user.is_staff)
+            if bool(user and user.is_staff):
+                auth.login(request,user)
+                messages.info(request,message='Logged in as admin succesfully')
+                return redirect('dashboard')
+            elif bool(user and user.is_active):
+                
+                auth.login(request,user)
+                messages.info(request,message='Logged in succesfully')
+                return redirect('/')
+            elif bool(user and not user.is_active):
+                messages.info(request,message='User is Blocked by Admin')
+                return Response({'serializer':serializer,'error': 'User is Blocked by Admin'},template_name='authentication/login.html',content_type='text/html')
             
+            else:
+                messages.error(request,'Invalid credentials')
+                
+                return Response({'serializer':serializer,'error': 'Invalid credentials'},template_name='authentication/login.html',content_type='text/html')
+        else:
             return Response({'serializer':serializer,'error': 'Invalid credentials'},template_name='authentication/login.html',content_type='text/html')
-
+            
 class LogoutAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -201,25 +202,30 @@ class LogoutAPIView(APIView):
         return redirect('/')
 
 class HomePageView(APIView):
-    renderer_classes=[TemplateHTMLRenderer]
+    renderer_classes = [TemplateHTMLRenderer]
+
     def get(self, request):
+        context = {}
         if request.user.is_authenticated:
             try:
-                user=User.objects.get(username=request.user.username)
+                user = User.objects.get(username=request.user.username)
             except User.DoesNotExist:
-                user=None
-            if user is None or user.is_active is False:
+                user = None
+            
+            if user is None or not user.is_active:
                 request.session.flush()
             else:
-                customer,created=Customer.objects.prefetch_related('user').get_or_create(user_id=user.id)
+                customer, created = Customer.objects.prefetch_related('user').get_or_create(user_id=user.id)
                 if created:
-                    messages.info(request,f"{user.username}'s profile is created as Bronze Membership")
-            
-            context={
-                "customer":customer,
-            }
-            return Response(context,template_name='app/home.html',content_type='text/html')
-        return Response(template_name='app/home.html',content_type='text/html')
+                    messages.info(request, f"{user.username}'s profile is created as Bronze Membership")
+                
+                context['customer'] = customer
+
+        # Retrieve active banners
+        banners = Banner.objects.filter(is_active=True).order_by('display_order')
+        context['banners'] = banners
+
+        return Response(context, template_name='app/home.html', content_type='text/html')
     
 class ProfileAPIView(APIView):
     permission_classes=[IsActive]
@@ -233,8 +239,7 @@ class ProfileAPIView(APIView):
         serializer=CustomerSerializer(customer)
         
         context={
-            'customer_serializer':CustomerProfiledSerializer(customer),
-            'user_serializer':UserNormalUpdateSerializer(user),
+            'customer_serializer':CustomerProfileSerializer(customer),
             'serializer':UserNormalUpdateSerializer(),
             'customer':serializer.data,
             'chgepass':ChangePasswordSerializer(),
@@ -281,8 +286,7 @@ class ProfileAPIView(APIView):
                 customer._prefetched_objects_cache = {}
             messages.success(request,"Profile updated successfully")
             context={
-                'customer_serializer':CustomerProfiledSerializer(customer),
-                'user_serializer':UserNormalUpdateSerializer(customer.user),
+                'customer_serializer':CustomerProfileSerializer(customer),
                 'serializer':CustomerProfileSerializer(customer),
                 'customer':customer_data,
                 'chgepass':ChangePasswordSerializer(),

@@ -22,18 +22,92 @@
     <div class="container my-5">
         <div class="row">
             <div class="col-md-5">
-                <div class="main-img">
-                    <img class="img-fluid" src="{{product.images.0.image}}" alt="ProductS">
+                <div x-data="{
+                    mainImage: '{{ product.images.0.image }}',
+                    zoom: false,
+                    fullscreen: false,
+                    currentIndex: 0,
+                    images: {{ product.images|safe }},
+                    changeImage(src) {
+                        this.mainImage = src;
+                    },
+                    toggleFullscreen() {
+                        this.fullscreen = !this.fullscreen;
+                    },
+                    nextImage() {
+                        this.currentIndex = (this.currentIndex + 1) % this.images.length;
+                        this.mainImage = this.images[this.currentIndex].image;
+                    },
+                    closeFullscreen() {
+                        this.fullscreen = false;
+                    }
+                }" class="main-img">
+                    <div class="overflow-auto">
+                        <img x-bind:src="mainImage" alt="ProductS" class="img-fluid" x-on:mouseenter="zoom = true"
+                            x-on:mouseleave="zoom = false" x-on:click="toggleFullscreen()"
+                            x-bind:class="zoom ? 'zoom' : ''" style="cursor: zoom-in;">
+                    </div>
                     <div class="row my-3 previews">
                         {% for img in product.images %}
                         <div class="col-md-3">
-                            <img class="w-100" src="{{img.image}}" alt="Sale">
+                            <img class="w-100" src="{{ img.image }}" alt="Sale"
+                                x-on:click="changeImage('{{ img.image }}')" style="cursor: pointer;">
                         </div>
                         {% endfor %}
-
-
                     </div>
+
+                    <!-- Fullscreen overlay -->
+                    <div x-show="fullscreen" x-on:click.away="closeFullscreen()" class="fullscreen-overlay"
+                        x-bind:class="fullscreen ? 'active' : ''" style="display: none;">
+
+                        <i class="fas fa-times fullscreen-close" x-on:click="closeFullscreen()"
+                            style="cursor: pointer;">
+                        </i>
+
+                        <img x-bind:src="mainImage" alt="ProductS" class="img-fluid fullscreen-image"
+                            x-on:click="nextImage()" style="cursor: pointer;">
+                    </div>
+
+                    <style>
+                        .zoom {
+                            transform: scale(2);
+                            transition: transform 0.5s ease;
+                        }
+
+                        .fullscreen-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(0, 0, 0, 0.8);
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            z-index: 1000;
+                        }
+
+                        .fullscreen-overlay.active {
+                            display: flex;
+                        }
+
+                        .fullscreen-image {
+                            max-width: 90%;
+                            max-height: 90%;
+                        }
+
+                        .fullscreen-close {
+                            position: absolute;
+                            top: 20px;
+                            right: 20px;
+                            font-size: 24px;
+                            color: white;
+                        }
+                    </style>
                 </div>
+
+
+
             </div>
             <div class="col-md-7">
                 <div class="main-description px-2">
@@ -66,11 +140,13 @@
                                 {% if product.wishlist_items.0 %}
                                 <button hx-post="{%url 'u-wishlist-list'%}" hx-trigger="click" hx-target="#wishbtn"
                                     hx-vals='{"mode":"product_page","product_id":{{product.id}}}'
-                                    class="btn btn-success  tex-center">Wishlist</button>
+                                    class="btn btn-dark  tex-center"><i class="fa-solid text-danger fa-heart"></i>
+                                    Wishlist</button>
                                 {%else%}
                                 <button hx-post="{%url 'u-wishlist-list'%}" hx-trigger="click" hx-target="#wishbtn"
                                     hx-vals='{"mode":"product_page","product_id":{{product.id}}}'
-                                    class="btn btn-dark  tex-center ">Wishlist</button>
+                                    class="btn btn-dark  tex-center "><i class="fa-regular text-danger fa-heart"></i>
+                                    Wishlist</button>
                                 {% endif %}
 
                             </div>

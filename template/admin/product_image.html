@@ -31,47 +31,6 @@
     </form>
 </div>
 
-<!-- Block -->
-<div class="modal fade" id="blockModal" tabindex="-1" aria-labelledby="userBlockModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-        <div class="modal-content ">
-            <div class="modal-header">
-
-                <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="blockform" action="" method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-
-                </div>
-                <div class="modal-footer">
-                    <button id="blockbtn" type="button" class="btn btn-primary">Hide Product</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- UnBlock -->
-<div class="modal fade" id="unblockModal" tabindex="-1" aria-labelledby="userUnblockModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-        <div class="modal-content ">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Unide Product</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="unblockform" action="" method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-
-                </div>
-                <div class="modal-footer">
-                    <button id="unblockbtn" type="button" class="btn btn-primary">Unblock User</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 
 <script>

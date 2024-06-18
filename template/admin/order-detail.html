@@ -7,57 +7,74 @@
 {% block content %}
 
 <section class="container">
-    <h3 class="h3">Order Details</h3>
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item">Order Id: {{order.id}}</li>
-        <li class="list-group-item">Customer details: ({{order.name}}):</li>
-        <div class="list-group-item">
-            <ul class="list-group list-group">
-                <li class="list-group-item">Name: {{order.customer.user.first_name}} {{order.customer.user.last_name}}
-                </li>
-                <li class="list-group-item">Username: {{order.customer.user.username}}</li>
-                <li class="list-group-item">Email: {{order.customer.user.email}}</li>
-                <li class="list-group-item">Phone: {{order.customer.user.phone}}</li>
-            </ul>
-        </div>
-        <li class="list-group-item">Address details :</li>
-        <div class="list-group-item">
-            <ul class="list-group list-group">
-                <li class="list-group-item">Id: {{order.address.id}}
-                </li>
-                <li class="list-group-item">Address Name: {{order.address.name}}</li>
-                <li class="list-group-item">State: {{order.address.state}}</li>
-                <li class="list-group-item">city: {{order.address.city}}</li>
-                <li class="list-group-item">Pin {{order.address.pin}}</li>
-            </ul>
-        </div>
-        <li class="list-group-item">Payment Details :</li>
-        <div class="list-group-item">
-            <ul class="list-group list-group">
-                <li class="list-group-item">Total: ${{order.total}}
-                </li>
-                <li class="list-group-item">Applied Coupon Id: {{order.applied_coupon}}</li>
-                <li class="list-group-item">Grand Total: ${{order.grand_total}}</li>
-                <li class="list-group-item">Payment Method: {{order.payment_method}}</li>
-                <li class="list-group-item">Payment Status: {{order.payment_status}}</li>
-            </ul>
-        </div>
-        <li class="list-group-item">Products: </li>
-        <div class="list-group-item">
-            <ul class="list-group list-group">
-                {% for item in order.items %}
-                <li class="row gap-3 list-group-item text-center d-flex align-items-center">
-                    <p class="col">{{item.product.title}}</p>
-                    <p class="col">${{item.product.unit_price}}</p>
-                    <p class="col">x{{item.quantity}}</p>
-                    <p class="col-2"><img class="img-thumbnail" src="/media/{{item.product.image}}" alt="Product Image">
-                    </p>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        <li class="list-group-item">Placed At: {{order.placed_at}}</li>
-    </ul>
+    <div class="accordion" id="accordionExample">
+        <h3 class="h3">Order Details</h3>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Order Id: {{order.id}}</li>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button btn " type="button" data-bs-toggle="collapse"
+                        data-bs-target="#orderItems" aria-controls="orderItems">
+                        Products
+                    </button>
+                </h2>
+                <div id="orderItems" class="accordion-collapse collapse" aria-labelledby="Products"
+                    data-bs-parent="#accordionExample">
+                    <div class="accordion-body list-group-item">
+                        <ul class="list-group list-group">
+                            {% for item in order.items %}
+                            <li id="itemid{{item.id}}"
+                                class="row gap-3 list-group-item text-center d-flex align-items-center">
+                                {% include "admin/order_item_row.html" with item=item order_id=order.id%}
+                            </li>
+                            {% endfor %}
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <li class="list-group-item">Customer details: ({{order.name}}):</li>
+            <div class="list-group-item">
+                <ul class="list-group list-group">
+                    <li class="list-group-item">Name: {{order.customer.user.first_name}}
+                        {{order.customer.user.last_name}}
+                    </li>
+                    <li class="list-group-item">Username: {{order.customer.user.username}}</li>
+                    <li class="list-group-item">Email: {{order.customer.user.email}}</li>
+                    <li class="list-group-item">Phone: {{order.customer.user.phone}}</li>
+                </ul>
+            </div>
+            <li class="list-group-item">Address details :</li>
+            <div class="list-group-item">
+                <ul class="list-group list-group">
+                    <li class="list-group-item">Id: {{order.address.id}}
+                    </li>
+                    <li class="list-group-item">Address Name: {{order.address.name}}</li>
+                    <li class="list-group-item">State: {{order.address.state}}</li>
+                    <li class="list-group-item">city: {{order.address.city}}</li>
+                    <li class="list-group-item">Pin {{order.address.pin}}</li>
+                </ul>
+            </div>
+            <li class="list-group-item">Payment Details :</li>
+            <div class="list-group-item">
+                <ul class="list-group list-group">
+                    <li class="list-group-item">Total: ${{order.total}}
+                    </li>
+                    <li class="list-group-item">Applied Coupon Id: {{order.applied_coupon}}</li>
+                    <li class="list-group-item">Grand Total: ${{order.grand_total}}</li>
+                    <li class="list-group-item">Payment Method: {{order.payment_method}}</li>
+                    <li class="list-group-item">Payment Status: {{order.payment_status}}</li>
+                </ul>
+            </div>
+
+            <li class="list-group-item">Placed At: {{order.placed_at}}</li>
+        </ul>
+    </div>
 </section>
 
 

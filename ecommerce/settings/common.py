@@ -16,19 +16,15 @@ import os
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qy+vs#(+2%9$d@_q#hc2n0+u18kxmg24ax-!7jz+w^%qvz^nsl'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+
 
 
 # Application definition
@@ -64,6 +60,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -97,16 +94,6 @@ WSGI_APPLICATION = 'ecommerce.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'storefront',
-        'HOST': 'localhost',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'port':'5432'
-    }
-}
 
 
 # Password validation
@@ -195,17 +182,11 @@ AUTH_USER_MODEL= 'core.USER'
 ACCOUNT_EMAIL_REQUIRED = True 
 ACCOUNT_EMAIL_VERIFICATION = 'none' 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
-EMAIL_HOST = 'smtp.gmail.com' 
-EMAIL_PORT = 587 
-EMAIL_HOST_USER = 'eaby7210@gmail.com'  
-EMAIL_HOST_PASSWORD = "iomzoayxjpqudsrz" 
+
 EMAIL_USE_TLS = True 
 
 
-#razorpar
-RAZORPAY_ID='rzp_test_XqEMlS82BGA5ki'
-RAZORPAY_ACCOUNT_ID='mDSlw9kn3UIrTNZLe6rk3HJh'
+
 # DJOSER={
 #     'CREATE_SESSSION_ON_LOGIN':True,
 #     'SERIALIZERS':{

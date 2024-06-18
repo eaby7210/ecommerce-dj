@@ -100,11 +100,11 @@
         observer.observe(document.getElementById('profile-handler-section'), { childList: true, subtree: true });
     }                  
 }">
-    <button type="button" class="btn btn-secondary align-item-end me-4" @click="showForm()">
+    <button type="button" class="btn btn-secondary align-item-end me-4" data-bs-toggle="modal"
+        data-bs-target="#profilemodal">
         Edit Profile
     </button>
-    <button type="button" class="btn btn-secondary align-item-end " data-bs-toggle="modal"
-        data-bs-target="#passwordmodal">
+    <button type="button" class="btn btn-secondary align-item-end " @click="showForm()">
         Change Password
     </button>
 
@@ -158,7 +158,7 @@
                 <div class="modal-body">
                     <form>
                         {% render_form customer_serializer %}
-                        {% render_form user_serializer %}
+
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             Close
                         </button>

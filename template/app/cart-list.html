@@ -2,8 +2,7 @@
     <div class="row">
         <div class="col">
             <h5 class="card-title">{{item.product.title}}</h5>
-            <h6 class="card-subtitle mb-2 text-body-secondary col">${{item.product.unit_price}}
-                {{item.product.id}}</h6>
+            <h6 class="card-subtitle mb-2 text-body-secondary col">${{item.product.unit_price}}</h6>
         </div>
 
         <div class="col">
@@ -24,44 +23,51 @@
         <span class="text-center col">Total Price: ${{item.total_price}}</span>
 
     </div>
-    <div class="d-flex flex-row justify-content-center">
-        <div class="btn-group-vertical col-3" role="group" aria-label="Vertical button group">
-            <div class="input-group ">
+    <div class="d-flex flex-row justify-content-between my-3">
+        <div class="col-1"><img src="/media/{{item.product.image}}" class="img-fluid"
+                alt="Product Image {{item.product.image}}"></div>
+        <div class=" col-3 my-4">
+            <div class="btn-group-vertical" role="group" aria-label="Vertical button group">
+                <div class="input-group ">
 
-                <button type="button" hx-put="/cart/{{item.id}}/" hx-trigger="click" hx-target="#cartitem{{item.id}}"
-                    hx-vals='{"mode": "minus","quantity":1,"product_id":{{item.product.id}}}'
-                    class="input-group-text fs-4 text-danger">-</button>
-                <input hx-put="/cart/{{item.id}}/" name="quantity" hx-trigger="keyup delay:1000"
-                    hx-target="#cartitem{{item.id}}" hx-vals='{"mode": "update","product_id":{{item.product.id}}}'
-                    type="text" id="quantity{{item.id}}" class="form-control fs-5 text-center"
-                    placeholder="Custom Quantity" aria-label="Quantity">
+                    <button type="button" hx-put="/cart/{{item.id}}/" hx-trigger="click"
+                        hx-target="#cartitem{{item.id}}"
+                        hx-vals='{"mode": "minus","quantity":1,"product_id":{{item.product.id}}}'
+                        class="input-group-text fs-4 text-danger">-</button>
+                    <input hx-put="/cart/{{item.id}}/" name="quantity" hx-trigger="keyup delay:1000"
+                        hx-target="#cartitem{{item.id}}" hx-vals='{"mode": "update","product_id":{{item.product.id}}}'
+                        type="text" id="quantity{{item.id}}" class="form-control fs-5 text-center"
+                        placeholder="Custom Quantity" aria-label="Quantity">
 
-                <button type="submit" hx-put="/cart/{{item.id}}/" hx-trigger="click" hx-target="#cartitem{{item.id}}"
-                    hx-vals='{"mode": "add","quantity":1,"product_id":{{item.product.id}}}'
-                    class="input-group-text fs-4 text-primary">+</button>
+                    <button type="submit" hx-put="/cart/{{item.id}}/" hx-trigger="click"
+                        hx-target="#cartitem{{item.id}}"
+                        hx-vals='{"mode": "add","quantity":1,"product_id":{{item.product.id}}}'
+                        class="input-group-text fs-4 text-primary">+</button>
 
-            </div>
-            <button type="button" hx-get="{%url 'u-cart-detail' item.id%}" hx-trigger="click"
-                hx-target="#cart-modal-body" class="btn btn-outline-danger" data-bs-toggle="modal"
-                data-bs-target="#cart-delete">Remove</button>
+                </div>
+                <button type="button" hx-get="{%url 'u-cart-detail' item.id%}" hx-trigger="click"
+                    hx-target="#cart-modal-body" class="btn btn-outline-danger" data-bs-toggle="modal"
+                    data-bs-target="#cart-delete">Remove</button>
 
-            <div class="modal fade" id="cart-delete" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">Remove Cart Item</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div id="cart-modal-body">
-                            {% include "app/cart-del.html" %}
+                <div class="modal fade" id="cart-delete" tabindex="-1" aria-labelledby="exampleModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Remove Cart Item</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div id="cart-modal-body">
+                                {% include "app/cart-del.html" %}
+                            </div>
                         </div>
                     </div>
                 </div>
+
+
+
             </div>
-
-
-
         </div>
     </div>
 </div>

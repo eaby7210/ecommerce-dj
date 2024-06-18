@@ -304,98 +304,108 @@ class CreateOrderSerializer(serializers.Serializer):
             raise serializers.ValidationError('Your Cart is empty')
         return attrs
     
-    
-    
+
     def save(self, **kwargs):
-        coupon=kwargs['coupon']
-        payment_method=kwargs['payment_method']
-        print(self.validated_data)
+        coupon = kwargs.get('coupon')
+        payment_method = kwargs.get('payment_method')
+        customer = self.context['customer']
         
+        cart_items = CartItem.objects.select_related('product').filter(customer=customer)
+        if not cart_items.exists():
+            message="Your cart is empty."
+            return message, None, None
+
+        total = Decimal(0)
+        order_items = []
+        total_discount = Decimal(0)
+
+        # Check if all items can be added to the order
+        for item in cart_items:
+            if item.product.inventory <= 0:
+                message = f"Product {item.product.title} is out of stock."
+                return message, None, None
+            if item.product.inventory < item.quantity:
+                message = f"Insufficient quantity for product {item.product.title}."
+                return message, None, None
+
+            order_items.append(OrderItem(
+                product=item.product,
+                quantity=item.quantity,
+                unit_price=item.product.unit_price
+            ))
+            total += item.product.unit_price * item.quantity
+
+        # Check if the payment method is COD and total is above Rs 1000
+        if payment_method == 'cod' and total > 1000:
+            message = "Orders above $1000 are not allowed for Cash on Delivery (COD)"
+            return message, None, None
+
+        if coupon:
+            try:
+                coupon_obj = Coupon.objects.get(code=coupon)
+                discount_amt = total * (coupon_obj.discount / Decimal(100))
+                total_discount += discount_amt
+                grand_total = total - discount_amt
+            except Coupon.DoesNotExist:
+                message = "Entered Invalid coupon code"
+                return message, None, None
+        else:
+            grand_total = total
+
+        # Check if the grand total is 0
+        if grand_total == 0:
+            payment_status = 'C'  # Complete
+        else:
+            payment_status = 'P'  # Pending
+
+        # Proceed with creating the order and order items
         with transaction.atomic():
-            address=self.validated_data['address']
-            customer=self.context['customer']
-            
-            cart_items=CartItem.objects.select_related('product').filter(customer=customer)
-            order_address=OrderAddress.objects.create(
+            address = self.validated_data['address']
+            order_address = OrderAddress.objects.create(
                 name=address.name,
                 state=address.state,
                 city=address.city,
                 pin=address.pin,
                 other_details=address.other_details
-                
             )
-            new_order=Order.objects.create(
+            new_order = Order.objects.create(
                 customer=customer,
                 address=order_address,
-                total=0,
+                total=total,
+                total_discount=total_discount,
                 payment_method=payment_method,
-                payment_status='P',
+                payment_status=payment_status,
                 order_status='PL'
-                
-                )
-            outofstockflag=""
-            order_items=[]
-            for item in cart_items:
-                if item.product.inventory<=0:
-                    outofstockflag="(Some of the out of stock item didn't added to the order)"
-                    continue
-                else:
-                    if item.product.inventory<item.quantity:
-                        order_items.append(
-                        OrderItem(
-                        order=new_order,
-                        product=item.product,
-                        quantity=item.product.inventory,
-                        ) 
-                        )
-                        new_order.total+=item.product.unit_price*item.product.inventory
-                        print(order_items)
-                        item.quantity-=item.product.inventory
-                        item.product.inventory=0
-                       
-                        item.save()
-                        item.product.save()
-                        outofstockflag="(Some of the quantity of item didn't added to the order)"
-                    else:
-                        order_items.append(
-                        OrderItem(
-                        order=new_order,
-                        product=item.product,
-                        quantity=item.quantity,
-                        ) 
-                        )
-                        new_order.total+=item.product.unit_price*item.quantity
-                        print(order_items)
-                        item.product.inventory-=item.quantity
-                        item.product.save()
-                        item.delete()
-            print(len(order_items))
-           
-            if order_items!=[]:
-                OrderItem.objects.bulk_create(order_items)
-            if coupon!="" and coupon!=None:
-                    coupon_obj=Coupon.objects.get(code=coupon)
-                    discount_amt=new_order.total*(coupon_obj.discount/Decimal(100))
-                    new_order.grand_total=new_order.total-discount_amt
-                    new_order.applied_coupon=coupon_obj
-                    print(coupon_obj)
-            else:
-                new_order.grand_total=new_order.total
-            
-            if order_items==[]:
-                message="No items to add to order "+outofstockflag
-                return message,None,None
-            if payment_method=='rzr':
-                razorpay_order_obj,total=razor_payment(new_order)
-                message="Please complete the payment through Razorpay Gateway "+outofstockflag
-                return message,razorpay_order_obj,total
-            elif payment_method=='cod':
-                new_order.save()
-                message="Your order is placed successfully "+outofstockflag
-                return message,new_order
-        
+            )
 
-     
+            for order_item in order_items:
+                order_item.order = new_order
+                product = Product.objects.get(id=order_item.product.id)
+                product.inventory -= order_item.quantity
+                product.save()
+
+            OrderItem.objects.bulk_create(order_items)
+
+            new_order.grand_total = grand_total
+            if coupon:
+                new_order.applied_coupon = coupon_obj
+            new_order.save()
+
+            # Delete cart items only after order creation
+            cart_items.delete()
+
+            if grand_total == 0:
+                message = "Your order is placed successfully with a grand total of $0"
+                return message, new_order, None
+            elif payment_method == 'rzr':
+                razorpay_order_obj, total = razor_payment(new_order)
+                message = "Please complete the payment through Razorpay Gateway"
+                return message, razorpay_order_obj, total
+            elif payment_method == 'cod':
+                message = "Your order is placed successfully"
+                return message, new_order, total
+
+
 
 class UpdateAdminOrderSerializer(serializers.ModelSerializer):
     class Meta:

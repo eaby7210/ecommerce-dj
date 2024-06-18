@@ -22,7 +22,8 @@ urlpatterns=[
     path('',views.Dashboard.as_view(),name="dashboard"),
     path('',include(product_router.urls)),
     path('',include(router.urls)),
-    path('nav-updates',views.NavUpdateView.as_view(),name="nav-update")
+    path('nav-updates',views.NavUpdateView.as_view(),name="nav-update"),
+
     
   ]  
 #     path('products/',views.ProductList.as_view(),name='adminProductList'),

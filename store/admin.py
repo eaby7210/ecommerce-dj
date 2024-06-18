@@ -145,6 +145,14 @@ class OrderAdmin(admin.ModelAdmin):
     def user_membership(self,order):
         return order.customer.membership
     
+@admin.register(models.Banner)
+class BannerAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active', 'display_order', 'created_at', 'updated_at')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'description')
+    ordering = ('display_order', 'created_at')
+    readonly_fields = ('created_at', 'updated_at')
+    
         
 
 

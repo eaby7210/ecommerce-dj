@@ -6,154 +6,297 @@
 
 {% block content %}
 <a href="{%url 'admin-product-detail' product_id%}" class="btn btn-outline-primary mx-5">Back to Product</a>
-<details class="container my-3">
-    <summary class="h4">Add Product Image</summary>
-    <div id="action-bar" class="container row justify-content-center">
-        <div class="col-8">
-            <form action="/myadmin/products/{{product_id}}/images/" method="post" enctype="multipart/form-data">
-                <div class="modal-body">
+<div class="container accordion my-5" id="product-image-accord">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="add-image-accord">
+            <button class="btn btn-dark accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#add-form" aria-expanded="true" aria-controls="add-form">
+                Add Product Image
+            </button>
+        </h2>
+        <div id="add-form" class="accordion-collapse collapse" aria-labelledby="add-image-accord"
+            data-bs-parent="#product-image-accord">
+            <div class="accordion-body">
 
 
+                <div class="card d-flex align-items-center justify-content-center text-muted my-3 p-0">
+                    <div class="container-fluid mx-auto p-4 bg-white rounded-lg position-relative shadow-sm">
 
+                        <div x-data="imageData()" x-init="initCroppie()" class="active:shadow-sm active:border-primary">
+                            <!--show the input-->
+                            <div x-show="!showCroppie && !hasImage">
 
+                                <input type="file" name="fileinput" accept="image/*" id="fileinput"
+                                    class="position-absolute top-0 start-0 m-0 p-0 w-100 h-100 border-0 opacity-0 p-5"
+                                    x-ref="input" x-on:change="updatePreview()"
+                                    x-on:dragover="$el.classList.add('active')"
+                                    x-on:dragleave="$el.classList.remove('active')"
+                                    x-on:drop="$el.classList.remove('active')">
 
-                    {% csrf_token %}
-                    {% render_form serializer %}
+                                <div class="d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                                    <label for="fileinput" class="cursor-pointer text-center text-uppercase py-2">
+                                        Drag an image here or click in this area.
+                                    </label>
+                                    <button type="button"
+                                        class="d-flex align-items-center mx-auto py-2 px-4 btn btn-primary border-transparent rounded ">Select
+                                        a file</button>
+                                </div>
+
+                            </div>
+
+                            <!--show the cropper-->
+                            <div x-show="showCroppie">
+                                <div class="mx-auto"><img src="" alt x-ref="croppie" class="d-block w-100"></div>
+                                <div class="py-2 d-flex justify-content-between align-items-center">
+                                    <button type="button" class="btn btn-danger"
+                                        x-on:click="clearPreview()">Delete</button>
+                                    <button type="button" class="btn btn-success"
+                                        x-on:click="saveCroppie()">Save</button>
+                                </div>
+                            </div>
+
+                            <!--show result -->
+                            <div x-show="!showCroppie && hasImage" class="">
+                                <div class="row justify-content-center"><img class="img-thumbnail col-6" src alt
+                                        x-ref="result" class="d-block"></div>
+                                <div class="row justify-content-around">
+                                    <div id="uploadImageForm" class="row "
+                                        hx-post="/myadmin/products/{{product_id}}/images/" hx-trigger="uploadImage"
+                                        hx-vals="js:{image:this.croppedImage}" hx-encoding="multipart/form-data"
+                                        hx-target="#image-list-table" hx-swap="afterbegin">
+                                    </div>
+
+                                    <button type="button" class="btn btn-danger col-3" x-on:click="swap()">Swap</button>
+                                    <button type="button" class="btn btn-success col-3"
+                                        x-on:click="upload()">Upload</button>
+                                    <button type="button" class="btn btn-primary col-3"
+                                        x-on:click="edit()">Edit</button>
+
+                                </div>
+
+                            </div>
+
+                            <script>
+                                function imageData() {
+                                    return {
+                                        showCroppie: false,
+                                        hasImage: false,
+                                        originalSrc: "",
+                                        croppie: {},
+                                        croppedImage: "",
+
+                                        updatePreview() {
+                                            var reader, files = this.$refs.input.files;
+
+                                            reader = new FileReader();
+
+                                            reader.onload = (e) => {
+                                                this.showCroppie = true;
+                                                this.originalSrc = e.target.result;
+                                                this.bindCroppie(e.target.result);
+                                            };
+
+                                            reader.readAsDataURL(files[0]);
+                                        },
+                                        initCroppie() {
+                                            this.croppie = new Croppie(this.$refs.croppie, {
+                                                viewport: { width: 420, height: 340, type: "square" }, //circle
+                                                boundary: { width: 420, height: 340 }, //default boundary container
+                                                showZoomer: true,
+                                                enableResize: false
+                                            });
+                                        },
+                                        clearPreview() {
+                                            this.$refs.input.value = null;
+                                            this.showCroppie = false;
+                                        },
+                                        swap() {
+                                            this.$refs.input.value = null;
+                                            this.showCroppie = false;
+                                            this.hasImage = false;
+                                            this.$refs.result.src = "";
+                                            //update som kind of array
+                                        },
+                                        edit() {
+                                            this.$refs.input.value = null;
+                                            this.showCroppie = true;
+                                            this.hasImage = false;
+                                            this.$refs.result.src = "";
+                                            this.bindCroppie(this.originalSrc); //this.$refs.result.src //or some array value
+                                            //update som kind of array
+                                        },
+                                        saveCroppie() {
+                                            obj = this.croppie
+                                            this.$refs.input.value = null;
+                                            this.showCroppie = false;
+                                            this.hasImage = false;
+                                            this.$refs.result.src = "";
+                                            obj.result({
+                                                type: "base64",
+                                                size: "original"
+                                            }).then((croppedImage) => {
+                                                this.$refs.result.src = croppedImage;
+                                                this.showCroppie = false;
+                                                this.hasImage = true;
+                                            });
+                                            obj.result({
+                                                type: "blob",
+                                                size: "original",
+                                                format: "jpeg",
+                                            }).then((croppedImage) => {
+                                                const file = new File([croppedImage], 'product-{{product_id}}-image.jpeg', { type: 'image/jpeg' });
+                                                this.croppedImage = file
+                                            });
+
+                                        },
+                                        returnImg() {
+                                            return this.croppedImage
+                                        },
+                                        upload() {
+                                            console.log(this.croppedImage)
+                                            formdata = new FormData()
+                                            formdata.append('csrfmiddlewaretoken', '{{csrf_token}}')
+                                            formdata.append('image', this.croppedImage, 'product-{{product_id}}-image.jpeg')
+                                            for (let [key, value] of formdata.entries()) {
+                                                if (value instanceof File) {
+                                                    console.log(`${key}: ${value.name}, ${value.size} bytes, ${value.type}`);
+                                                } else {
+                                                    console.log(`${key}: ${value}`);
+                                                }
+                                            }
+
+                                            fetch(`/myadmin/products/{{product_id}}/images/`, {
+                                                method: 'POST',
+                                                body: formdata,
+                                            })
+                                                .then(response => response.text()) // or response.json() if your response is JSON
+                                                .then(html => {
+                                                    // Update the target element with the new content
+                                                    document.querySelector('#image-list-table').insertAdjacentHTML('afterbegin', html);
+                                                })
+                                                .catch(error => console.error('Error:', error));
+
+                                        },
+                                        bindCroppie(src) {
+                                            setTimeout(() => {
+                                                //avoid problems with croppie container not being visible when binding
+                                                this.croppie.bind({
+                                                    url: src
+                                                });
+                                            }, 200);
+                                        }
+                                    };
+                                }
+
+                            </script>
+                        </div>
+                    </div>
 
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Add Product Image</button>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="image-list-accord">
+            <button class="btn btn-dark accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#image-list" aria-expanded="true" aria-controls="add-form">
+                Product Id:{{product_id}} Image List
+            </button>
+        </h2>
+        <div id="image-list" class="accordion-collapse collapse show" aria-labelledby="image-list-accord"
+            data-bs-parent="#product-image-accord">
+            <div class="accordion-body">
+                <div class="d-flex justify-content-between">
+                    {% if previous %}
+                    <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
+                    {% else %}
+                    <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
+                    {% endif %}
+                    <p>{{page_number}}/{{total_pages}}</p>
+
+                    {% if next %}
+                    <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
+                    {% else %}
+                    <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
+                    {% endif %}
                 </div>
-            </form>
-        </div>
-</details>
-<!-- <button type="button" class="btn btn-success col-2 add-button" data-bs-toggle="modal" data-bs-target="#addModal">
-        Add
-    </button> -->
+                <table class="table container">
+                    <thead>
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">Url</th>
+                            <th scope="col">Thumbnail</th>
+                            <th scope="col">Actions</th>
 
-<details class="container" open>
-    <summary class="h4">Product {{product_id}} Image List</summary>
-    <div class="d-flex justify-content-between">
-        {% if previous %}
-        <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
-        {% else %}
-        <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
-        {% endif %}
-        <p>{{page_number}}/{{total_pages}}</p>
-
-        {% if next %}
-        <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
-        {% else %}
-        <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
-        {% endif %}
-    </div>
-    <table class="table container">
-        <thead>
-            <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Url</th>
-                <th scope="col">Thumbnail</th>
-                <th scope="col">Actions</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            {% for image in results%}
-            <tr>
+                        </tr>
+                    </thead>
+                    <tbody id="image-list-table">
+                        {% for image in results%}
+                        <tr id="imagerow{{image.id}}">
 
 
 
-                <th scope="row">{{image.id}}</th>
-                <td><a href="{{image.image}}">{{image.image}}</a></td>
-                <td class="col-2 "><img src="{{image.image}}" class="img-thumbnail rounded border border-1"
-                        alt="Product Image">
-                </td>
+                            <th scope="row">{{image.id}}</th>
+                            <td><a href="{{image.image}}">{{image.image}}</a></td>
+                            <td class="col-2 "><img src="{{image.image}}" class="img-thumbnail rounded border border-1"
+                                    alt="Product Image">
+                            </td>
 
 
-                <td class="row justify-content-around">
-                    <a href="{%url 'admin-product-detail' product_id %}images/{{image.id}}"
-                        class="btn btn-outline-secondary col-3 fs-6">
-                        Edit</a>
-                    <button type="button" class="btn btn-danger col-4" data-bs-toggle="modal"
-                        data-bs-target="#deleteModal" data-bs-userid={{product.id}} data-bs-username={{product.title}}>
-                        Delete
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</details>
+                            <td class="row justify-content-around">
+                                <a href="{%url 'admin-product-detail' product_id %}images/{{image.id}}/"
+                                    class="btn btn-outline-secondary col-3 fs-6">
+                                    Edit</a>
+                                <button type="button" class="btn btn-danger col-4" data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal{{image.id}}" data-bs-imageid={{image.id}}
+                                    data-bs-productid={{product_id}} data-bs-producttitle={{image.image}}>
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
 
+                        <div class="modal fade" id="deleteModal{{image.id}}" tabindex="-1"
+                            aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">DELETE PRODUCT IMAGE
+                                            {{image.id}}</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body row">
+                                        Are you sure you want to delete this Image
+                                        <img src="{{image.image}}" class="img-thumbnail col-2 rounded border border-1"
+                                            alt="Product Image">
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary"
+                                            data-bs-dismiss="modal">Close</button>
+                                        <button id="delbtn"
+                                            hx-delete="{%url 'admin-product-detail' product_id %}images/{{image.id}}/"
+                                            hx-target="#imagerow{{image.id}}" hx-vals='{"id":{{image.id}}}'
+                                            hx-trigger="click" type="button" class="btn btn-outline-danger"
+                                            data-bs-dismiss="modal">Delete</button>
 
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Delete Product</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure to delete the Product
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-                <form class="" method="POST" action="">
-                    {% csrf_token %}
-                    <input style="display: none" name="u_id" id="user_id" readonly />
-                    <button type="submit" class="btn btn-outline-danger">Delete</button>
-                </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
             </div>
         </div>
     </div>
+
 </div>
 
 
-<!------ Modals ------>
-<!-- add Modal -->
 
 
-
-
-
-
-
-
-<script>
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const detailsElements = document.querySelectorAll('details');
-
-        if (deleteModal) {
-            deleteModal.addEventListener('show.bs.modal', event => {
-                const button = event.relatedTarget
-                const userid = button.getAttribute('data-bs-userid')
-                const username = button.getAttribute('data-bs-username')
-                const modalTitle = deleteModal.querySelector('.modal-title')
-                const modalBodyInput = deleteModal.querySelector('#user_id')
-                const modalmsg = deleteModal.querySelector('.modal-body')
-
-                modalTitle.textContent = `Delete Product ${userid}`
-                modalmsg.textContent = `Are u sure to DELETE ${username}`
-            })
-        }
-
-        detailsElements.forEach(details => {
-            details.addEventListener('toggle', function (event) {
-                detailsElements.forEach(otherDetails => {
-                    if (otherDetails !== this) {
-                        otherDetails.removeAttribute('open'); // Close other details
-
-                    }
-                });
-            });
-        });
-    });
-
-
-
-
-
-
-</script>
 {% endblock content %}

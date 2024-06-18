@@ -47,13 +47,14 @@
                     <div id="whishbtn{{item.id}}">
                         <button hx-post="{%url 'u-wishlist-list'%}"
                             hx-vals='{"mode":"product_list","product_id":{{item.id}}}' hx-trigger="click"
-                            hx-target="#whishbtn{{item.id}}" type="button" {% if item.wishlist_items.0 %}
-                            class="btn btn-success" {%else%} class="btn btn-secondary" {% endif %}>
+                            hx-target="#whishbtn{{item.id}}" type="button" class="btn btn-dark">
                             <span>
-                                <svg class="wishlist">
+                                {% if item.wishlist_items.0 %}
+                                <i class="fa-solid text-danger fa-heart"></i>
+                                {%else%}
+                                <i class="fa-regular text-danger fa-heart"></i>
+                                {% endif %}
 
-                                    <use xlink:href="#heart"></use>
-                                </svg>
                             </span>
                         </button>
 
@@ -69,7 +70,7 @@
 
             <a href="{%url 'u-product-detail' pk=item.id%}">
 
-                <img src="{{item.images.0.image}}" class="img-fluid" alt="product item picture">
+                <img src="{{item.images.0.image}}" class="card-img-top" alt="product item picture">
                 <h5 class="mt-2">{{item.title}}</h5>
             </a>
             <span class="price text-primary fw-light mb-2">${{item.unit_price}}</span>

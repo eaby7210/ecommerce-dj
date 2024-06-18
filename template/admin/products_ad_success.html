@@ -1,0 +1,22 @@
+{% load rest_framework %}
+
+{% render_form serializer %}
+
+<div id="plist-tbody" hx-swap-oob="true" hx-swap="afterbegin">
+    <tr>
+        <th scope="row">{{product.id}}</th>
+        <td>{{product.title|capfirst}}</td>
+        <td>{{product.inventory}}</td>
+        <td>{{product.brand.title}}</td>
+        <td>{{product.category.title}}</td>
+        <td>{{product.active}}</td>
+
+        <td class="row justify-content-around">
+            <a href="{%url 'admin-product-detail' pk=product.id%}" class="btn btn-outline-secondary p-2 col-5 fs-6">
+                Edit</a>
+        </td>
+    </tr>
+</div>
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

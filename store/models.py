@@ -85,7 +85,7 @@ class Product(models.Model):
     active = models.BooleanField(default=False)
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, related_name='brand_products')
     category=models.ForeignKey(Main_Category,null=True,blank=True, on_delete=models.PROTECT, related_name='categories_products')
-    rating = models.DecimalField(max_digits=2, decimal_places=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    rating = models.DecimalField(null=True,blank=True,max_digits=2, decimal_places=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
 
     def __str__(self):
         return self.title
@@ -218,6 +218,8 @@ class Order(models.Model):
         related_name='o_customer'
     )
     applied_coupon = models.ForeignKey(Coupon, on_delete=models.PROTECT, related_name='order_coupons', null=True, blank=True)
+    total_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    referral_code = models.CharField(max_length=20, null=True, blank=True)
     grand_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     payed_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
@@ -287,6 +289,7 @@ class OrderItem(models.Model):
     ]
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=STATUS_PENDING)
     order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='items')
+    unit_price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1)])
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orderitems")
     quantity = models.PositiveSmallIntegerField()
     
@@ -333,44 +336,60 @@ class WishList(models.Model):
         
         
 
-class ProductDiscount(models.Model):
-    name=models.CharField(max_length=50)
-    description = models.TextField()
-    discount = models.IntegerField(validators=[
-        MinValueValidator(0),MaxValueValidator(100)
-        ]
-        )
-    product=models.ForeignKey(Product,on_delete=models.CASCADE)
-    active = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        unique_together=[['product','discount']]
-    
-class BrandDiscount(models.Model):
-    name=models.CharField(max_length=50)
-    description = models.TextField()
-    discount = models.IntegerField(validators=[
-        MinValueValidator(0),MaxValueValidator(100)
-        ]
-        )
-    brand=models.ForeignKey(Brand,models.CASCADE)
-    active = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        unique_together=[['brand','discount']]
 
-class CategoryDiscount(models.Model):
-    name=models.CharField(max_length=50)
-    description = models.TextField()
-    discount = models.IntegerField(validators=[
-        MinValueValidator(0),MaxValueValidator(100)
-        ]
-        )
-    category=models.ForeignKey(Main_Category,models.CASCADE)
-    active = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
+
+class CategoryOffer(models.Model):
+    title=models.CharField(max_length=50)
+    category = models.ForeignKey(Main_Category, on_delete=models.CASCADE, related_name='offers')
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.discount_percentage}% off on {self.category.title}"
+
+
+class ProductOffer(models.Model):
+    title=models.CharField(max_length=50)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='offers')
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.discount_percentage}% off on {self.product.title}"
     
+    
+class ReferralOffer(models.Model):
+    title=models.CharField(max_length=50)
+    code = models.CharField(max_length=20, unique=True)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Referral code {self.code}: {self.discount_percentage}% off"
+    
+    
+    
+class Banner(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='banners/')
+    link = models.CharField(max_length=100,blank=True, null=True)
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
     class Meta:
-        unique_together=[['category','discount']]
+        ordering = ['display_order', 'created_at']
+        indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['display_order']),
+        ]
+

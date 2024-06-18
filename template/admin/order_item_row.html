@@ -1,0 +1,51 @@
+<div class="col">
+    <div class="col row">
+        <p class="col">{{item.product.title}}</p>
+        <p class="col">${{item.product.unit_price}}</p>
+        <p class="col">x{{item.quantity}}</p>
+    </div>
+    <div class="col row">
+        <p class="col">Status :{{item.str_status}}</p>
+        <div class="col">
+            {% if item.status == 'RR' %}
+            <button hx-put="{%url 'admin-order-detail' order_id%}" hx-trigger="click" hx-target="#itemid{{item.id}}"
+                hx-indicator="#itemindicator{{item.id}}" hx-vals='{"mode":"order_item_update","item_id":{{item.id}}}'
+                hx-confirm="Are you sure to Approve the return of item {{item.product.title}}"
+                class="btn btn-outline-danger" type="button">Approve
+                Return</button>
+
+            {% endif %}
+
+            {% if item.status == 'S' %}
+            <button hx-put="{%url 'admin-order-detail' order_id%}" hx-trigger="click" hx-target="#itemid{{item.id}}"
+                hx-indicator="#itemindicator{{item.id}}" hx-vals='{"mode":"order_item_update","item_id":{{item.id}}}'
+                hx-confirm="Are you sure to Complete the Delivery of item {{item.product.title}}"
+                class="btn btn-outline-danger" type="button">Delivered</button>
+            {% endif %}
+
+            {% if item.status == 'P' %}
+            <button hx-put="{%url 'admin-order-detail' order_id%}" hx-trigger="click" hx-target="#itemid{{item.id}}"
+                hx-indicator="#itemindicator{{item.id}}" hx-vals='{"mode":"order_item_update","item_id":{{item.id}}}'
+                hx-confirm="Are you sure to Start the shipping of item {{item.product.title}}"
+                class="btn btn-outline-danger" type="button">Ship</button>
+            {% endif %}
+
+            {% if item.status == 'RA' %}
+            <button hx-put="{%url 'admin-order-detail' order_id%}" hx-trigger="click" hx-target="#itemid{{item.id}}"
+                hx-indicator="#itemindicator{{item.id}}" hx-vals='{"mode":"order_item_update","item_id":{{item.id}}}'
+                hx-confirm="Are you sure to Complete the returning of item {{item.product.title}}"
+                class="btn btn-outline-danger" type="button">Complete Return</button>
+            {% endif %}
+
+        </div>
+        <div class="col">
+            <span id="itemindicator{{item.id}}" class="htmx-indicator spinner-border text-success" role="status"></span>
+        </div>
+    </div>
+</div>
+<p class="col-1"><img class="img-thumbnail" src="/media/{{item.product.image}}" alt="Product Image">
+</p>
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>

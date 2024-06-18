@@ -17,6 +17,12 @@ drf-nested-routers = "*"
 razorpay = "*"
 setuptools = "*"
 django-htmx = "*"
+reportlab = "*"
+whitenoise = "*"
+gunicorn = "*"
+django-allauth = "*"
+cryptography = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

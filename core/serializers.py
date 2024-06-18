@@ -100,14 +100,14 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, attrs):
         user = self.context['request'].user
         if not user.check_password(attrs['old_password']):
-            messages.warnig(self.context['request'],"Old password is incorrect")
+            messages.warning(self.context['request'],"Old password is incorrect")
             raise serializers.ValidationError(_("Old password is incorrect"))
         if attrs['new_password'] == attrs['old_password']:
-            messages.warnig(self.context['request'],"Old password and New password are the same.")
+            messages.warning(self.context['request'],"Old password and New password are the same.")
             raise serializers.ValidationError({"confirm_password": _("Old password and New password are the same.")})
     
         if attrs['new_password'] != attrs['confirm_password']:
-            messages.warnig(self.context['request'],"The new password fields didn't match.")
+            messages.warning(self.context['request'],"The new password fields didn't match.")
             raise serializers.ValidationError({"confirm_password": _("The new password fields didn't match.")})
         return attrs
 

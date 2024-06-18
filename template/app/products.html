@@ -13,105 +13,88 @@
 </div>
 <div class="container d-flex felx-row justify-content-between mb-3">
     <h1 class="h1 row font-monospace">Products</h1>
-    <div class="d-flex felx-row justify-content-between">
-        <form>
-            <div class="py-2">
-                <div class="input-group flex-nowrap form-floating">
-                    <input type="text" class="form-control" id="searchbox" name="search" aria-label="Search Keyword"
-                        aria-describedby="addon-wrapping">
-                    <label for="searchbox">Search Keyword</label>
-                    <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+    <div class="d-flex felx-row align-item-center">
+        <form hx-get="{%url 'u-product-list'%}" trigger="changed" hx-target="#productlistsection">
+
+            <div class="input-group flex-nowrap form-floating">
+                <input type="text" class="px-3 rounded border-1" id="searchbox" name="search"
+                    aria-label="Search Keyword" aria-describedby="addon-wrapping" placeholder="Search Products">
+
+                <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
 
 
-                        <div class="btn-group " role="group">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Sortings
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio1"
-                                        autocomplete="off" value="title">
-                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio1">Product
-                                        A-Z</label>
-                                </li>
-                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio2"
-                                        autocomplete="off" value="-title" checked>
-                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio2">Product
-                                        Z-A</label>
-                                </li>
-                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio3"
-                                        autocomplete="off" value="unit_price">
-                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio3">Price
-                                        ++</label>
-                                </li>
-                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio4"
-                                        autocomplete="off" value="-unit_price">
-                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio4">Price
-                                        --</label>
-                                </li>
-                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio5"
-                                        autocomplete="off" value="last_update">
-                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio5">Latest
-                                        --</label>
-                                </li>
-                                <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio6"
-                                        autocomplete="off" value="-last_update">
-                                    <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio6">Oldest
-                                        --</label>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="btn-group " role="group">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Category
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li> <input type="radio" class="btn-check" name="categories" id="categorynone"
-                                        autocomplete="off" value="" checked>
-                                    <label class="btn btn-outline-danger dropdown-item"
-                                        for="categorynone">------------</label>
-                                </li>
-                                {% for category in categories %}
+                    <div class="btn-group " role="group">
+                        <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Sortings
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio1"
+                                    autocomplete="off" value="title">
+                                <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio1">Product
+                                    A-Z</label>
+                            </li>
+                            <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio2"
+                                    autocomplete="off" value="-title" checked>
+                                <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio2">Product
+                                    Z-A</label>
+                            </li>
+                            <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio3"
+                                    autocomplete="off" value="unit_price">
+                                <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio3">Price
+                                    ++</label>
+                            </li>
+                            <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio4"
+                                    autocomplete="off" value="-unit_price">
+                                <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio4">Price
+                                    --</label>
+                            </li>
+                            <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio5"
+                                    autocomplete="off" value="last_update">
+                                <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio5">Latest
+                                    --</label>
+                            </li>
+                            <li> <input type="radio" class="btn-check" name="ordering" id="vbtn-radio6"
+                                    autocomplete="off" value="-last_update">
+                                <label class="btn btn-outline-danger dropdown-item" for="vbtn-radio6">Oldest
+                                    --</label>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="btn-group " role="group">
+                        <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Category
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li> <input type="radio" class="btn-check" name="category" id="categorynone"
+                                    autocomplete="off" value="" checked>
+                                <label class="btn btn-outline-danger dropdown-item"
+                                    for="categorynone">------------</label>
+                            </li>
+                            {% for category in categories %}
 
 
-                                <li> <input type="radio" class="btn-check" name="categories"
-                                        id="category{{category.id}}" autocomplete="off" value="{{category.id}}">
-                                    <label class="btn btn-outline-danger dropdown-item"
-                                        for="category{{category.id}}">{{category.title}}</label>
-                                </li>
-                                {% endfor %}
+                            <li> <input type="radio" class="btn-check" name="category" id="category{{category.id}}"
+                                    autocomplete="off" value="{{category.id}}">
+                                <label class="btn btn-outline-danger dropdown-item"
+                                    for="category{{category.id}}">{{category.title}}</label>
+                            </li>
+                            {% endfor %}
 
-                            </ul>
-                        </div>
-                        <script>
-                            const searchBox = document.getElementById("searchbox");
-
-                            getSearch = () => {
-                                const searchBox = document.getElementById("searchbox");
-                                return searchBox.value
-                            }
-                            getOrdering = () => {
-                                const sortradio = document.querySelector("input[name='ordering']:checked")
-                                return sortradio.value
-                            }
-                            getCategory = () => {
-                                const categoryradio = document.querySelector("input[name='categories']:checked")
-                                return categoryradio.value
-                            }
-                        </script>
-                        <button hx-get="{%url 'u-product-list'%}" hx-trigger="click" hx-target="#productlistsection"
-                            type="button" class="btn btn-dark"
-                            hx-vals='js:{search:getSearch(),ordering:getOrdering(),category:getCategory()}'><i
-                                class="fa-solid fa-filter"></i>
-                            Filter</button>
-
+                        </ul>
                     </div>
 
+                    <button type="submit" class="btn btn-dark"><i class="fa-solid fa-filter"></i>
+                        Filter</button>
+
                 </div>
+
             </div>
+
         </form>
     </div>
+</div>
 </div>
 <section id="productlistsection" class="home-cards grid container my-6">
     {% include "app/products-list.html" %}

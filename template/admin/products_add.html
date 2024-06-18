@@ -1,114 +1,124 @@
 {% extends "index.html" %}
-{% load rest_framework %}
+
 {% block menu %}
 {% include "admin/admin-nav.html" %}
 {% endblock menu %}
 
 {% block content %}
 
-<details class="container my-3">
-    <summary class="h4">Add Product</summary>
-    <div id="action-bar" class="container row justify-content-center">
-        <div class="col-8">
-            <form action="{%url 'admin-product-list'%}" method="post">
-                <div class="modal-body">
-
-
-
-                    {% csrf_token %}
-                    {% render_form serializer %}
-
+<div class="container accordion" id="product-panel">
+    <h3 class="my-3">Products Admin Panel</h3>
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="add-product-heading">
+            <button class="btn btn-dark accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#add-product-accord" aria-expanded="true" aria-controls="add-product-accord">
+                Add Product
+            </button>
+        </h2>
+        <div id="add-product-accord" class="accordion-collapse collapse" aria-labelledby="add-product-heading"
+            data-bs-parent="#product-panel">
+            <div class="accordion-body">
+                <div class="col-8">
+                    <form>
+                        <div class="gap-1" id="product-add-form">
+                            {% include "admin/products_add_form.html" %}
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-primary" hx-post="{%url 'admin-product-list'%}"
+                                hx-trigger="click" hx-target="#product-add-form">Add Product</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Add Product</button>
-                </div>
-            </form>
+            </div>
         </div>
-</details>
-<!-- <button type="button" class="btn btn-success col-2 add-button" data-bs-toggle="modal" data-bs-target="#addModal">
-        Add
-    </button> -->
-
-<details class="container" open>
-    <summary class="h4">Product List</summary>
-    <div class="d-flex justify-content-between">
-        {% if previous %}
-        <a href="{{previous}}" class="btn btn-outline-primary btn-block">Previous</a>
-        {% else %}
-        <button class="btn btn-outline-primary btn-block" disabled="disabled">Previous</button>
-        {% endif %}
-        <p>{{page_number}}/{{total_pages}}</p>
-
-        {% if next %}
-        <a href="{{next}}" class="btn btn-outline-primary btn-block">Next</a>
-        {% else %}
-        <button class="btn btn-outline-primary btn-block" disabled="disabled">Next</button>
-        {% endif %}
     </div>
-    <table class="table container">
-        <thead>
-            <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Title</th>
-                <th scope="col">Inventory</th>
-                <th scope="col">Brand</th>
-                <th scope="col">Category</th>
-                <th scope="col">Active</th>
-                <th scope="col">Actions</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in results%}
-            <tr>
 
 
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="product-list-heading">
+            <button class="btn btn-dark accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#product-list-accord" aria-expanded="true" aria-controls="product-list-accord">
+                Product List
+            </button>
+        </h2>
+        <div id="product-list-accord" class="accordion-collapse collapse show" aria-labelledby="product-list-heading"
+            data-bs-parent="#product-panel">
+            <div class="accordion-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <div class="col-8 ">
+                        <div class="d-flex justify-content-around">
+                            {% if previous %}
+                            <a href="{{previous}}" class="btn btn-outline-primary btn-sm btn-block">Previous</a>
+                            {% else %}
+                            <button class="btn btn-outline-primary btn-sm btn-block"
+                                disabled="disabled">Previous</button>
+                            {% endif %}
+                            <p>{{page_number}}/{{total_pages}}</p>
 
-                <th scope="row">{{product.id}}</th>
-                <td>{{product.title|capfirst}}</td>
-                <td>{{product.inventory}}</td>
-                <td>{{product.brand.title}}</td>
-                <td>{{product.category.title}}</td>
-                <td>{{product.active}}</td>
+                            {% if next %}
+                            <a href="{{next}}" class="btn btn-outline-primary btn-sm btn-block">Next</a>
+                            {% else %}
+                            <button class="btn btn-outline-primary btn-sm btn-block" disabled="disabled">Next</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col d-flex justify-content-center">
+                        <form action="{%url 'admin-product-list'%}" method="get">
+                            <div class="input-group mb-3">
+                                <input type="text" name="search" class="form-control" placeholder="Serach with Title/Id"
+                                    aria-describedby="button-addon2">
+                                <button class="btn btn-outline-secondary" type="submit"
+                                    id="button-addon2">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-                <td class="row justify-content-around">
-                    <a href="{%url 'admin-product-detail' pk=product.id%}"
-                        class="btn btn-outline-secondary p-2 col-5 fs-6">
-                        Edit</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</details>
+                <table class="table container">
+                    <thead>
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Inventory</th>
+                            <th scope="col">Brand</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Active</th>
+                            <th scope="col">Actions</th>
 
-
-
-
-
-
-
-<script>
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const detailsElements = document.querySelectorAll('details');
-
-        detailsElements.forEach(details => {
-            details.addEventListener('toggle', function (event) {
-                detailsElements.forEach(otherDetails => {
-                    if (otherDetails !== this) {
-                        otherDetails.removeAttribute('open'); // Close other details
-
-                    }
-                });
-            });
-        });
-    });
-
+                        </tr>
+                    </thead>
+                    <tbody id="plist-tbody">
+                        {% for product in results%}
+                        <tr>
 
 
 
+                            <th scope="row">{{product.id}}</th>
+                            <td>{{product.title|capfirst}}</td>
+                            <td>{{product.inventory}}</td>
+                            <td>{{product.brand.title}}</td>
+                            <td>{{product.category.title}}</td>
+                            <td>{{product.active}}</td>
+
+                            <td class="row justify-content-around">
+                                <a href="{%url 'admin-product-detail' pk=product.id%}"
+                                    class="btn btn-outline-secondary p-2 col-5 fs-6">
+                                    Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 
-</script>
+</div>
+
+
+
+
+
+
 {% endblock content %}

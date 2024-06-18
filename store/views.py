@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.db.models.aggregates import Count
 from django.db.models import Prefetch
+from datetime import date
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -19,62 +20,17 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Product,Brand,Address
 from .serializers import *
 from .filter import *
+import datetime
 
-class ProductListView(APIView, PageNumberPagination):
-    """
-    API view to get a paginated list of active products with HTML template rendering.
-    """
-    renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'app/products.html'  # Assuming template location
-    page_size=20
-    # filterset_class = ProductFilter
-    def get(self, request, format=None):
-        """
-        Get a list of active products.
-        """
-        if request.user.is_authenticated:
-            customer = Customer.objects.get(user=self.request.user)
-            queryset=Product.objects.prefetch_related(
-                'images',
-                Prefetch(
-                    'cartitem_set',queryset=CartItem.objects.only('id','quantity').filter(customer=customer),
-                         to_attr='cart_items'
-                         ),
-                 Prefetch(
-                        'wish_product',
-                        queryset=WishList.objects.only('id').filter(customer=customer),
-                        to_attr='wishlist_items'
-                    )
-                ).select_related('brand', 'category').filter(active=True)
-        else:
-            queryset = Product.objects.prefetch_related('images').select_related('brand').select_related('category').filter(active=True)
-        page = self.paginate_queryset(queryset,request)
-        if page is not None:
-            if request.user.is_authenticated:
-                serializer=ProductCartSerializer(page, many=True, context={'request': request})
-            else:
-                serializer = ProductSerializer(page, many=True, context={'request': request})
-            # pprint.pprint(serializer.data)
-            total_products=self.page.paginator.count
-            page_size=self.get_page_size(request)
-            total_pages=total_products//page_size
-            if total_products % page_size != 0:
-                total_pages += 1
-            
-            context={
-                'total_pages':total_pages,
-                'page_number':self.get_page_number(request,paginator=page),
-                'page_size':page_size,
-                'count': total_products,
-                'next': f'/product/?page={self.page.number+1}',
-                'previous': f'/product/?page={self.page.number-1}',
-                'results': serializer.data,
-            }
-            # pprint.pprint("first:",context['next'])
-            return Response(context, status=status.HTTP_200_OK)
-        serializer = ProductSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-  
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from io import BytesIO
+
+
   
 class ProductViewset(ProductPagination,ReadOnlyModelViewSet):
     pagination_class = ProductPagination
@@ -95,25 +51,36 @@ class ProductViewset(ProductPagination,ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             customer = Customer.objects.get(user=self.request.user)
-            return Product.objects.prefetch_related(
-                'images',
-                Prefetch(
-                    'cartitem_set',queryset=CartItem.objects.only('id','quantity').filter(customer=customer),
-                         to_attr='cart_items'
-                         ),
-                Prefetch(
-                        'wish_product',
-                        queryset=WishList.objects.only('id').filter(customer=customer),
-                        to_attr='wishlist_items'
-                    )
-                ).select_related('brand', 'category').filter(active=True)
-        return Product.objects.prefetch_related('images').\
+            return Product.objects.annotate(
+                            num_images=Count('images')
+                        ).filter(
+                            active=True,
+                            num_images__gt=0
+                        ).prefetch_related(
+                            'images',
+                            Prefetch(
+                                'cartitem_set',
+                                queryset=CartItem.objects.only('id', 'quantity').filter(customer=customer),
+                                to_attr='cart_items'
+                            ),
+                            Prefetch(
+                                'wish_product',
+                                queryset=WishList.objects.only('id').filter(customer=customer),
+                                to_attr='wishlist_items'
+                            )
+                        ).select_related('brand', 'category')
+        return Product.objects.annotate(
+                            num_images=Count('images')
+                        ).prefetch_related('images').\
             select_related('brand').select_related('category').\
-                filter(active=True)
+                filter(num_images__gt=0,active=True)
     
     def get_template_names(self) -> list[str]:
         if self.action == 'list':
-            return ["app/products-list.html"]
+            if self.request.htmx:
+                return ["app/products-list.html"]
+            else:
+                return ["app/products.html"]
         else:
             return ["app/product_page.html"]
     
@@ -206,7 +173,7 @@ class CartViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         if CartItem.objects.filter(customer=self.get_customer_id()).count()==0:
             messages.error(request,"Cart is Empty,Please add products to view the cart.")
-            return redirect('product_list')
+            return redirect('u-product-list')
         mode=None
         if bool(request.GET):
             print(request.GET)
@@ -379,8 +346,63 @@ class OrderViewSet(ModelViewSet):
         return Response(serializer.data)
     
     def retrieve(self, request, *args, **kwargs):
+        mode=request.GET.get('mode',None)
         instance = self.get_object()
         serializer = OrderSerializer(instance)
+        if mode=="pdfgen":
+            # Generate PDF invoice
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4)
+            elements = []
+
+            # Title
+            title = "Invoice"
+            generation_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            title_paragraph = Paragraph(f"{title}<br/>Date: {generation_date}", getSampleStyleSheet()['Title'])
+            elements.append(title_paragraph)
+            elements.append(Spacer(1, 0.5 * inch))
+
+            # Order details
+            elements.append(Paragraph(f"Order ID: {instance.id}", getSampleStyleSheet()['BodyText']))
+            elements.append(Paragraph(f"Customer: {instance.customer.user.username}", getSampleStyleSheet()['BodyText']))
+            address = instance.address
+            address_string = f"{address.name}, {address.city}, {address.state}, {address.pin}, {address.other_details}"
+
+            elements.append(Paragraph(f"Address: {address_string}", getSampleStyleSheet()['BodyText']))
+            elements.append(Spacer(1, 0.5 * inch))
+
+            # Order items
+            items_data = [['Product', 'Quantity', 'Unit Price', 'Total Price']]
+            for item in instance.items.all():
+                items_data.append([
+                    item.product.title,
+                    item.quantity,
+                    item.unit_price,
+                    item.unit_price * item.quantity
+                ])
+            items_table = Table(items_data, hAlign='LEFT')
+            items_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ]))
+            elements.append(Paragraph("Order Items", getSampleStyleSheet()['Heading2']))
+            elements.append(items_table)
+            elements.append(Spacer(1, 0.5 * inch))
+
+            # Order totals
+            elements.append(Paragraph(f"Total: {instance.total}", getSampleStyleSheet()['BodyText']))
+            elements.append(Paragraph(f"Total Discount: {instance.total_discount}", getSampleStyleSheet()['BodyText']))
+            elements.append(Paragraph(f"Grand Total: {instance.total - instance.total_discount}", getSampleStyleSheet()['BodyText']))
+
+            # Build PDF
+            doc.build(elements)
+            buffer.seek(0)
+            return HttpResponse(buffer, content_type='application/pdf')
         context={
             'order':serializer.data,
         }
@@ -390,7 +412,7 @@ class OrderViewSet(ModelViewSet):
         customer=self.get_customer()
         if CartItem.objects.filter(customer=customer).count()==0:
             messages.error(request,"PLease add products to Cart to order")
-            return redirect('product_list')
+            return redirect('u-product-list')
         
         data={key: value for key, value in request.data.items()}
         payment_method=data.pop('payment-method',None)
@@ -405,19 +427,29 @@ class OrderViewSet(ModelViewSet):
         
         if serializer.is_valid():
             if payment_method=="cod":
-                message,order = serializer.save(coupon=coupon,payment_method=payment_method)
+                message,order,total = serializer.save(coupon=coupon,payment_method=payment_method)
                 if order==None:
                     messages.error(request,message)
-                    return redirect(reverse('home'))
+                    return redirect(reverse('checkout'))
+                elif total==None:
+                    messages.success(request,message)
+                    return redirect('u-order-detail',pk=order.id)
                     
                 serializer = OrderSerializer(order)
                 messages.success(request,message)
                 context={
-                    'order':serializer.data
+                    'order':serializer.data,
+                    'total':total
                 }
                 return Response(context,template_name='app/order-summary.html',content_type='text/html')
             elif payment_method=="rzr":
                 message,razorpay_obj,ptotal = serializer.save(coupon=coupon,payment_method=payment_method)
+                if razorpay_obj==None:
+                    messages.error(request,message)
+                    return redirect(reverse('checkout'))
+                elif ptotal==None:
+                    messages.success(request,message)
+                    return redirect('u-order-detail',pk=razorpay_obj.order.id)
                 response=self.razor_pay_reponse(razorpay_obj,message,ptotal)
                 response.template_name="app/payment.html"
                 response.content_type='text/html'
@@ -579,6 +611,10 @@ class CheckCoupon(APIView):
         total=Decimal(request.data['grand_total'])
         try:
             coupon=Coupon.objects.get(code=coupon,active=True) 
+            today = date.today()
+            if not (coupon.valid_from <= today <= coupon.valid_to):
+                messages.warning(request, "This coupon is expired or not yet valid.")
+                return Response(template_name="app/coupon-form.html", content_type="text/html")
             discount_amt=total*(coupon.discount/Decimal(100))
             final_total=total-discount_amt
             context={

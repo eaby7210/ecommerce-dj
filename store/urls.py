@@ -14,7 +14,7 @@ router.register('wishlist',views.WhishListViewSet,basename='u-wishlist')
 
 # URLConf
 urlpatterns = [
-    path('products/', views.ProductListView.as_view(),name='product_list'),
+    
     path('checkout/',views.CheckoutView.as_view(),name='checkout'),
     path('couponcheck/',views.CheckCoupon.as_view(),name='coupon-check'),
     path('payment/',views.payment,name="u-payment"),

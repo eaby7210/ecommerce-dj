@@ -3,6 +3,7 @@ from django.shortcuts import render,get_object_or_404,redirect
 from django.urls import reverse
 # from django.core.cache import cache
 from django.contrib import messages
+import datetime
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
@@ -13,7 +14,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAdminUser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.renderers import TemplateHTMLRenderer
-from django.db.models.aggregates import Count
+from django.db import transaction
+from django.db.models import Count, Case, When, Value, CharField
+from django.db.models.aggregates import Count,Sum,Avg
+from django.db.models.functions import ExtractMonth,ExtractYear
 from store.models import *
 from store.serializers import *
 from .filter import *
@@ -23,19 +27,240 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import IsAdminUser
 
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from io import BytesIO
+
+
 User=get_user_model()
-
-
 
 # Create your views here.
 
+
+
 class Dashboard(APIView):
-    renderer_classes=[TemplateHTMLRenderer]
-    permission_classes=[IsAdminUser]
-    def get(self,request):
-        context={}
-        return Response(context,template_name='admin/dashboard.html',content_type='text/html')
-        
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAdminUser]
+    MONTH_NAMES = {
+        1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June',
+        7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'
+    }
+    
+    def get_table_style(self):
+        return TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ])
+
+    def generate_pdf(self, context):
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+        styles = getSampleStyleSheet()
+
+        # Title
+        title = "E-Commerce"
+        generation_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        title_paragraph = Paragraph(f"{title}<br/>Report - {generation_date}", styles['Title'])
+        elements.append(title_paragraph)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Membership counts table
+        membership_data = [['Membership Type', 'Number of Customers']] + [[membership['membership_display'], membership['count']] for membership in context['membership_counts']]
+        membership_table = Table(membership_data, hAlign='LEFT')
+        membership_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Number of customers per membership type", styles['Heading2']))
+        elements.append(membership_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Order status table
+        status_data = [['Order Status', 'Number of Orders']] + [[status['order_status_display'], status['count']] for status in context['status_counts']]
+        status_table = Table(status_data, hAlign='LEFT')
+        status_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Orders broken down by status", styles['Heading2']))
+        elements.append(status_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Total and average order value
+        elements.append(Paragraph(f"Total Order Value: {context['total_order_value']}", styles['BodyText']))
+        elements.append(Paragraph(f"Average Order Value: {context['average_order_value']}", styles['BodyText']))
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Payment method table
+        payment_method_data = [['Payment Method', 'Number of Orders']] + [[payment['payment_method_display'], payment['count']] for payment in context['payment_method_counts']]
+        payment_method_table = Table(payment_method_data, hAlign='LEFT')
+        payment_method_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Payment method distribution", styles['Heading2']))
+        elements.append(payment_method_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Coupon usage
+        elements.append(Paragraph(f"Orders with coupons applied: {context['orders_with_coupons']}", styles['BodyText']))
+        elements.append(Paragraph(f"Orders without coupons applied: {context['orders_without_coupons']}", styles['BodyText']))
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Orders per customer table
+        orders_per_customer_data = [['Customer', 'Number of Orders']] + [[order['customer'], order['count']] for order in context['orders_per_customer']]
+        orders_per_customer_table = Table(orders_per_customer_data, hAlign='LEFT')
+        orders_per_customer_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Orders per customer", styles['Heading2']))
+        elements.append(orders_per_customer_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Order item status table
+        order_item_status_data = [['Order Item Status', 'Number of Items']] + [[status['status_display'], status['count']] for status in context['order_item_status_counts']]
+        order_item_status_table = Table(order_item_status_data, hAlign='LEFT')
+        order_item_status_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Status distribution of order items", styles['Heading2']))
+        elements.append(order_item_status_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Most ordered products table
+        most_ordered_products_data = [['Id', 'Product Title', 'Number of Orders']] + [[product['product__id'], product['product__title'], product['count']] for product in context['most_ordered_products']]
+        most_ordered_products_table = Table(most_ordered_products_data, hAlign='LEFT')
+        most_ordered_products_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Most frequently ordered products", styles['Heading2']))
+        elements.append(most_ordered_products_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Top brands table
+        top_brands_data = [['Brand', 'Number of Orders']] + [[brand['product__brand__title'], brand['total_orders']] for brand in context['top_brands']]
+        top_brands_table = Table(top_brands_data, hAlign='LEFT')
+        top_brands_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Top 10 Brands", styles['Heading2']))
+        elements.append(top_brands_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Top categories table
+        top_categories_data = [['Category', 'Number of Orders']] + [[category['product__category__title'], category['total_orders']] for category in context['top_categories']]
+        top_categories_table = Table(top_categories_data, hAlign='LEFT')
+        top_categories_table.setStyle(self.get_table_style())
+        elements.append(Paragraph("Top 10 Categories", styles['Heading2']))
+        elements.append(top_categories_table)
+        elements.append(Spacer(1, 0.5 * inch))
+
+        # Build PDF
+        doc.build(elements)
+
+        buffer.seek(0)
+        return HttpResponse(buffer, content_type='application/pdf')      
+
+
+
+    def get(self, request):
+        mode = request.query_params.get('mode')
+
+        orders = Order.objects.all()
+        users = User.objects.prefetch_related('customer').all()
+
+        # Aggregate order data
+        order_years = orders.annotate(year=ExtractYear("placed_at")).values("year").annotate(count=Count("id")).values("year", "count")
+        order_months = orders.annotate(month=ExtractMonth("placed_at")).values("month").annotate(count=Count("id")).values("month", "count").order_by("month")
+        total_order_value = orders.aggregate(Sum('total'))['total__sum']
+        average_order_value = orders.aggregate(Avg('total'))['total__avg']
+
+
+        if average_order_value is not None:
+            average_order_value = round(average_order_value, 2)
+
+        # Membership counts
+        membership_display_case = Case(
+            *[When(membership=choice[0], then=Value(choice[1])) for choice in Customer.MEMBERSHIP_CHOICES],
+            output_field=CharField()
+        )
+        membership_counts = Customer.objects.annotate(
+            membership_display=membership_display_case
+        ).values('membership_display').annotate(count=Count('id'))
+
+        # Order status counts
+        order_status_display_case = Case(
+            *[When(order_status=choice[0], then=Value(choice[1])) for choice in Order.ORDER_STATUS_CHOICES],
+            output_field=CharField()
+        )
+        status_counts = orders.annotate(
+            order_status_display=order_status_display_case
+        ).values('order_status_display').annotate(count=Count('id'))
+
+        # Payment method counts
+        payment_method_display_case = Case(
+            *[When(payment_method=choice[0], then=Value(choice[1])) for choice in Order.PAYMENT_METHOD_CHOICES],
+            output_field=CharField()
+        )
+        payment_method_counts = orders.annotate(
+            payment_method_display=payment_method_display_case
+        ).values('payment_method_display').annotate(count=Count('id'))
+
+        # Coupon usage
+        orders_with_coupons = orders.filter(applied_coupon__isnull=False).count()
+        orders_without_coupons = orders.filter(applied_coupon__isnull=True).count()
+
+        # Orders per customer
+        orders_per_customer = orders.values('customer').annotate(count=Count('id'))
+
+        # Order item status counts
+        order_item_status_display_case = Case(
+            *[When(status=choice[0], then=Value(choice[1])) for choice in OrderItem.STATUS_CHOICES],
+            output_field=CharField()
+        )
+        order_item_status_counts = OrderItem.objects.annotate(
+            status_display=order_item_status_display_case
+        ).values('status_display').annotate(count=Count('id'))
+
+        # Most ordered products
+        most_ordered_products = OrderItem.objects.values('product__id', 'product__title').annotate(count=Count('id')).order_by('-count')[:10]
+
+        # Top brands
+        top_brands = (
+            OrderItem.objects
+            .values('product__brand__id', 'product__brand__title')
+            .annotate(total_orders=Count('id'))
+            .order_by('-total_orders')[:10]
+        )
+
+        # Top categories
+        top_categories = (
+            OrderItem.objects
+            .values('product__category__id', 'product__category__title')
+            .annotate(total_orders=Count('id'))
+            .order_by('-total_orders')[:10]
+        )
+
+        context = {
+            'user_count': users.count(),
+            'active_user_count': users.filter(is_active=True).count(),
+            'order_count': orders.count(),
+            'order_to_process': orders.filter(order_status__in=['PL', 'PR', 'RR']).count(),
+            'years_list': [entry['year'] for entry in order_years],
+            'months_list': [entry['month'] for entry in order_months],
+            'y_order_count': [entry['count'] for entry in order_years],
+            'm_orders_count': [entry['count'] for entry in order_months],
+            'total_order_value': total_order_value,
+            'average_order_value': average_order_value,
+            'membership_counts': membership_counts,
+            'status_counts': status_counts,
+            'payment_method_counts': payment_method_counts,
+            'orders_with_coupons': orders_with_coupons,
+            'orders_without_coupons': orders_without_coupons,
+            'orders_per_customer': orders_per_customer,
+            'order_item_status_counts': order_item_status_counts,
+            'most_ordered_products': most_ordered_products,
+            'top_brands': top_brands,
+            'top_categories': top_categories,
+        }
+
+        if mode == 'pdfgen':
+            return self.generate_pdf(context)
+        else:
+            return Response(context, template_name='admin/dashboard.html', content_type='text/html')
 
 class UserViewSet(ModelViewSet):
     queryset=Customer.objects.select_related('user').all()
@@ -129,7 +354,7 @@ class ProductViewSet(ModelViewSet):
     # filterset_class = ProductFilter
     pagination_class = ProductPagination
     permission_classes = [IsAdminUser]
-    search_fields = ['title', 'description']
+    search_fields = ['title', 'id']
     ordering_fields = ['unit_price', 'last_update']
     renderer_classes=[TemplateHTMLRenderer]
     
@@ -152,6 +377,7 @@ class ProductViewSet(ModelViewSet):
    
     def get_serializer_context(self):
         return {'request':self.request}
+    
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -182,13 +408,23 @@ class ProductViewSet(ModelViewSet):
             return HttpResponse(serializer.errors,status=406)
  
     def create(self, request, *args, **kwargs):
+        print(request.data)
         serializer = ProductAdminSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        
-        messages.success(request,"Product created successfully")
-        return redirect('admin-product-list')
+        if serializer.is_valid():
+            instance=serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            context={
+                'product':instance,
+                'serializer':ProductAdminSerializer()
+            }
+            messages.success(request,"Product created successfully")
+            return Response(context,template_name="admin/products_ad_success.html",content_type='text/html')
+        else:
+            context={
+                'serializer':serializer
+            }
+           
+            return Response(context,template_name="admin/products_add_form.html",content_type='text/html')
     
     def destroy(self,request,*args, **kwargs):
         # product=get_object_or_404(Product,pk=pk)
@@ -363,11 +599,16 @@ class ProductImageViewSet(ModelViewSet,PageNumberPagination):
         }
         return Response(context)
     def create(self, request, *args, **kwargs):
+        print(request.data)
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            self.perform_create(serializer)
+            instance=serializer.save()
             headers = self.get_success_headers(serializer.data)
-            return redirect(reverse('product_images-list',kwargs={'product_pk':self.kwargs['product_pk']}))
+            context={
+                'image':instance,
+                'product_id':instance.product.id 
+            }
+            return Response(context,template_name="admin/product-newimage-row.html",content_type="text/html")
         else:
             pprint.pprint(serializer.errors)
             return HttpResponse("error")
@@ -384,6 +625,7 @@ class ProductImageViewSet(ModelViewSet,PageNumberPagination):
         pprint.pprint(context)
         return Response(context,status=status.HTTP_200_OK)
     def update(self, request, *args, **kwargs):
+        print(request.data)
         instance = self.get_object()
         print(request.data)
         print(instance.id)
@@ -397,6 +639,11 @@ class ProductImageViewSet(ModelViewSet,PageNumberPagination):
         else:
             print("cutomer-error: ",serializer.errors,)
             return HttpResponse(serializer.errors,status=406)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        messages.error(request,f"Image {instance.id} deleted successfully")
+        return Response(template_name="admin/admin-nav-update.html",content_type="txt/html")
 
 
 class OrderViewSet(ModelViewSet):
@@ -428,26 +675,49 @@ class OrderViewSet(ModelViewSet):
     
     
     def update(self, request, *args, **kwargs):
+        print(request.data)
+        mode=request.data.get("mode",None)
         order_id=kwargs.get('pk')
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        if serializer.is_valid():
-            self.perform_update(serializer)
-            order= Order.objects.get(id=order_id)
-            if instance.order_status=='RR' and order.order_status=='RA':
-                try:
-                    wallet=Wallet.objects.get(customer=self.get_customer_id())
-                    wallet.balance+=instance.grand_total
-                    wallet.save()
-                except Wallet.DoesNotExist:
-                    wallet=Wallet.objects.create(
-                        customer=order.customer,
-                        wallet=instance.grand_total
-                    )
-            context={
-                'order':order
-            }
-            return Response(context,template_name="admin/order-row.html",content_type="text/html")
+        items=OrderItem.objects.filter(order=instance)
+        if mode=="order_item_update":
+            item_id=request.data.get("item_id",None)
+            try:
+                item=items.get(id=item_id)
+            except OrderItem.DoesNotExist as e:
+                messages.error(request,e)
+                return Response(template_name="admin/admin-nav-update.html",content_type='text/html')
+            with transaction.atomic():
+                if item.status == 'RR':
+                    item.status="RA"
+                    message=f"Return has been Approved for item {item.product.title}."
+                    
+                elif item.status== 'S':
+                    item.status="D"
+                    message=f"Item {item.product.title} has delivered successfully"
+                elif item.status == 'P':
+                    item.status='S'
+                    print(item.status)
+                    message=f"Item {item.product.title} has shipped successfully"
+                elif item.status=="RA":
+                    item.status="RE"
+                    product=Product.objects.get(id=item.product_id)
+                    product.inventory+=item.quantity
+                    product.save()
+                    item_total=item.product.unit_price*item.quantity
+                    items_propotion=item_total/instance.total
+                    discount_amount=instance.total-instance.grand_total
+                    item_discount=items_propotion*discount_amount
+                    customer=Customer.objects.get(id=instance.customer_id)
+                    customer.wallet_balance+=item_total-item_discount
+                    customer.save()
+                    message=f"Item {item.product.title} has returned successfully.Amount credited to Customer wallet"
+            print(item.status)
+            item.save()
+            messages.info(request,message)
+            item_serializer=OrderItemSerializer(item)
+            return Response({"item":item_serializer.data,"order_id":instance.id},template_name="admin/order_item_row.html",content_type="text/html")
+        return Response(context,template_name="admin/order-row.html",content_type="text/html")
     def retrieve(self, request, *args, **kwargs):
         mode=None
         if bool(request.GET):
@@ -456,7 +726,7 @@ class OrderViewSet(ModelViewSet):
         instance = self.get_object()
         
         context={
-            'serializer':UpdateAdminOrderSerializer(),
+            
             'order':instance.id
         }
         response = Response(context)
@@ -464,12 +734,12 @@ class OrderViewSet(ModelViewSet):
             response.template_name="admin/order-form.html"
             response.content_type="text/html"
             return response
+        
         else:
             serializer = self.get_serializer(instance)
             context={
                 'order':serializer.data,
             }
-            print(context)
             response = Response(context)
             response.template_name='admin/order-detail.html'
             response.content_type='text/html'
