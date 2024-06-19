@@ -132,7 +132,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS=[
-    BASE_DIR/'static'
+    BASE_DIR/'static',
 ]
 MEDIA_URL='media/'
 MEDIA_ROOT=os.path.join(BASE_DIR,'media')
@@ -142,7 +142,7 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000/']
+CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000/','https://estorefront.store/']
 
 REST_FRAMEWORK={
     'COERCE_DECIMAL_TO_STRING':False,
@@ -153,10 +153,9 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 
     'allauth.account.auth_backends.AuthenticationBackend',
-    'rest_framework_simplejwt.authentication.JWTAuthentication',
 )
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-SITE_ID = 2
+SITE_ID = 3 
 LOGIN_REDIRECT_URL = '/'
 SOCIALACCOUNT_PROVIDERS={
     'google':{
