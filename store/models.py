@@ -15,14 +15,6 @@ def validate_valid_from(value):
     """
     if value <= date.today():
         raise ValidationError('Valid From date must be today or in the future.')
-
-def validate_valid_to(value):
-    """
-    Validator to ensure valid_to is one day greater than valid_from.
-    """
-    if value <= value.valid_from:  
-        raise ValidationError('Valid To date must be same as or one day after Valid From date.')
-
     
 class Coupon(models.Model):
     code=models.CharField(max_length=50,unique=True,validators=[RegexValidator(
@@ -31,12 +23,19 @@ class Coupon(models.Model):
     )])
     name=models.CharField(max_length=50)
     valid_from=models.DateField( validators=[validate_valid_from])
-    valid_to=models.DateField(validators=[validate_valid_to])
+    valid_to=models.DateField()
     discount=models.DecimalField(max_digits=5, decimal_places=2,validators=[
         MinValueValidator(0),MaxValueValidator(100)
         ]
         )
     active=models.BooleanField(default=False)
+    
+    def clean(self):
+        # Custom model validation to check valid_to against valid_from
+        if self.valid_from and self.valid_to:
+            if self.valid_to <= self.valid_from:
+                raise ValidationError({'valid_to': 'Valid To date must be the same day or after Valid From date.'})
+    
     
     def _str__(self):
         return self.name
@@ -393,3 +392,20 @@ class Banner(models.Model):
             models.Index(fields=['display_order']),
         ]
 
+
+class Transaction(models.Model):
+    TRANSACTION_TYPE_ORDER = 'order'
+    TRANSACTION_TYPE_REFUND = 'refund'
+    TRANSACTION_TYPE_CHOICES = [
+        (TRANSACTION_TYPE_ORDER, 'Order'),
+        (TRANSACTION_TYPE_REFUND, 'Refund')
+    ]
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='transactions')
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer.user.username} {self.transaction_type} {self.amount}"

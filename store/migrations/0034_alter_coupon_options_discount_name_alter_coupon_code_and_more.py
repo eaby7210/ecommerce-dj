@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='coupon',
             name='valid_to',
-            field=models.DateField(validators=[store.models.validate_valid_to]),
+            field=models.DateField(),
         ),
         migrations.AlterField(
             model_name='discount',

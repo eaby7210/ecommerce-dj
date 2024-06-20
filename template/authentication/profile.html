@@ -49,6 +49,14 @@
                             Order
                         </button>
                     </li>
+                    <li class="nav-item">
+                        <button hx-get="{%url 'u-transaction-list'%}" hx-target="#transaction-section"
+                            hx-trigger="click" hx-vals='{"mode":"profile"}' hx-push-url="#transaction-section"
+                            class="nav-link" id="order-tab" data-bs-toggle="tab" data-bs-target="#transaction"
+                            type="button" role="tab" aria-controls="order" aria-selected="true">
+                            Transaction History
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -72,6 +80,11 @@
                 <div class="tab-pane fade" id="order" role="tabpanel" aria-labelledby="order-tab">
                     <div id="order-section">
                         {% include "app/order-list.html" %}
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="transaction" role="tabpanel" aria-labelledby="order-tab">
+                    <div id="transaction-section">
+
                     </div>
                 </div>
             </div>

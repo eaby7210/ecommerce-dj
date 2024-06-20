@@ -16,7 +16,7 @@
         <div class="card mb-2">
             <div class="card-body d-flex flex-row justify-content-between">
                 <h4 class="card-title">{{item.product.title}}</h4>
-                <p class="card-subtitle">${{item.product.unit_price}}</p>
+                <p class="card-subtitle">₹{{item.product.unit_price}}</p>
                 <p class="card-text">Quantity: {{item.quantity}}</p>
             </div>
         </div>
@@ -25,7 +25,7 @@
         {% endfor %}
     </div>
     <div class="card-footer d-flex flex-row justify-content-between">
-        <p>Total Price: ${{order.total}}</p>
+        <p>Total Price: ₹{{order.total}}</p>
         <a class="btn btn-primary" href="{%url 'u-order-detail' order.id%}">Order details</a>
     </div>
 </div>

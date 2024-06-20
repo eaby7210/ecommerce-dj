@@ -10,6 +10,7 @@ router.register('category',views.CategoryViewSet,basename='u-category')
 router.register('cart',views.CartViewSet,basename='u-cart')
 router.register('order',views.OrderViewSet,basename='u-order')
 router.register('wishlist',views.WhishListViewSet,basename='u-wishlist')
+router.register('transactions', views.TransactionViewSet, basename='u-transaction')
 
 
 # URLConf

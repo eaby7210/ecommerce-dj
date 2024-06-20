@@ -3,7 +3,7 @@
 <td>{{order.placed_at}}</td>
 <td>{{order.payment_status}}</td>
 <td>{{order.order_status}}</td>
-<td>${{order.total}}</td>
+<td>₹{{order.total}}</td>
 <td class="row justify-content-around">
     <!-- <button hx-get="{%url 'admin-order-detail' order.id%}" hx-target="#ordermodalcontent" hx-trigger="click"
         hx-vals='{"mode":"update"}' class="btn btn-outline-secondary p-2 col-5 fs-6" data-bs-toggle="modal"

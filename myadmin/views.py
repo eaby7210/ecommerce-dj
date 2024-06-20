@@ -675,9 +675,7 @@ class OrderViewSet(ModelViewSet):
     
     
     def update(self, request, *args, **kwargs):
-        print(request.data)
         mode=request.data.get("mode",None)
-        order_id=kwargs.get('pk')
         instance = self.get_object()
         items=OrderItem.objects.filter(order=instance)
         if mode=="order_item_update":
@@ -704,11 +702,12 @@ class OrderViewSet(ModelViewSet):
                     product=Product.objects.get(id=item.product_id)
                     product.inventory+=item.quantity
                     product.save()
-                    item_total=item.product.unit_price*item.quantity
+                    item_total=item.unit_price*item.quantity
                     items_propotion=item_total/instance.total
                     discount_amount=instance.total-instance.grand_total
                     item_discount=items_propotion*discount_amount
                     customer=Customer.objects.get(id=instance.customer_id)
+                    transaction_obj=Transaction.objects.create(customer=customer,order=instance,amount=item_total-item_discount,transaction_type='refund')
                     customer.wallet_balance+=item_total-item_discount
                     customer.save()
                     message=f"Item {item.product.title} has returned successfully.Amount credited to Customer wallet"
@@ -717,7 +716,7 @@ class OrderViewSet(ModelViewSet):
             messages.info(request,message)
             item_serializer=OrderItemSerializer(item)
             return Response({"item":item_serializer.data,"order_id":instance.id},template_name="admin/order_item_row.html",content_type="text/html")
-        return Response(context,template_name="admin/order-row.html",content_type="text/html")
+        return Response({'order':instance},template_name="admin/order-row.html",content_type="text/html")
     def retrieve(self, request, *args, **kwargs):
         mode=None
         if bool(request.GET):
@@ -783,6 +782,14 @@ class CouponViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            data=serializer.data
+            if data['valid_to']<=data['valid_from']:
+                messages.error(request,"Valid_form cannot be greated thab valid_to")
+                context={
+                'serializer':serializer
+                }
+                messages.error(request,"Please enter a valid Coupon details")
+                return Response(context,template_name="admin/coupon-add-form.html",content_type='text/html')
             self.perform_create(serializer)
             messages.success(request,"Coupon saved Successfully")
             headers = self.get_success_headers(serializer.data)

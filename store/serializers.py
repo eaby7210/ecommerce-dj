@@ -262,7 +262,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     
     class Meta:
         model=OrderItem 
-        fields=['id','product','quantity','status','str_status']
+        fields=['id','product','quantity','status','str_status','unit_price']
         
         
 class OrderSerializer(serializers.ModelSerializer):
@@ -277,7 +277,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'id','name', 'customer', 'placed_at','address', 'payment_status','payment_method',
-            'order_status','total', 'items','applied_coupon','grand_total'
+            'order_status','total', 'items','applied_coupon','grand_total',
             ]
     
     def get_payment_status(self,order:Order):
@@ -337,7 +337,7 @@ class CreateOrderSerializer(serializers.Serializer):
 
         # Check if the payment method is COD and total is above Rs 1000
         if payment_method == 'cod' and total > 1000:
-            message = "Orders above $1000 are not allowed for Cash on Delivery (COD)"
+            message = "Orders above ₹1000 are not allowed for Cash on Delivery (COD)"
             return message, None, None
 
         if coupon:
@@ -395,7 +395,7 @@ class CreateOrderSerializer(serializers.Serializer):
             cart_items.delete()
 
             if grand_total == 0:
-                message = "Your order is placed successfully with a grand total of $0"
+                message = "Your order is placed successfully with a grand total of ₹0"
                 return message, new_order, None
             elif payment_method == 'rzr':
                 razorpay_order_obj, total = razor_payment(new_order)
@@ -421,6 +421,22 @@ class CouponCUSerializer(serializers.ModelSerializer):
     class Meta:
         model=Coupon
         fields=['id','name','code','valid_from','valid_to','discount','active']
+        
+        def validate(self, data):
+            """
+            Check that valid_from is earlier than valid_to.
+            """
+            valid_from = data.get('valid_from')
+            valid_to = data.get('valid_to')
+            print(valid_from," --- ",valid_to)
+            
+            if valid_from and valid_to:
+                if valid_to <= valid_from:
+                    raise serializers.ValidationError("Valid To date must be after Valid From date.")
+            else:
+                raise serializers.ValidationError("valid from and to Must mout be empty")
+
+            return data
         
 class RazorSerializer(serializers.ModelSerializer):
     order=OrderSerializer()
@@ -494,5 +510,7 @@ class ProductCartSerializer(serializers.ModelSerializer):
         return product.unit_price * Decimal(1.1)
     
     
-
-
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ['id', 'customer', 'order', 'amount', 'transaction_type', 'created_at']

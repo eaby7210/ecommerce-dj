@@ -1,5 +1,8 @@
-<span id="grand_total" hx-swap="innerHTML" hx-swap-oob="true">{{total}}
+{% if htmx %}
+<span id="grand_total" hx-swap="innerHTML" hx-swap-oob="true">₹{{total}}
 </span>
+{% endif %}
+
 <div id="coupon-section" hx-swap="innerHTML" hx-swap-oob="true">
     <input type="text" name="coupon" value="{{coupon.code}}" hidden>
 </div>

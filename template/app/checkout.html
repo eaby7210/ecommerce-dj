@@ -19,7 +19,7 @@
                 {% endfor %}
             </ul>
             <div class="card-footer">
-                Grand Total: <span id="grand_total">${{grand_total}}</span>
+                Grand Total: <span id="grand_total">₹{{grand_total}}</span>
                 <input type="number" name="grand_total" id="grand_input" value="{{grand_total}}" hidden>
             </div>
         </div>
@@ -73,4 +73,11 @@
 
 
 </div>
+<script type="text/javascript">
+    window.onpageshow = function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    };
+</script>
 {% endblock content%}

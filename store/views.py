@@ -17,10 +17,11 @@ from rest_framework import status
 import pprint
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from .models import Product,Brand,Address
+from .models import Product,Brand,Transaction
 from .serializers import *
 from .filter import *
 import datetime
+
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -461,7 +462,7 @@ class OrderViewSet(ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         mode=request.data.get('mode',None)
-        print(request.data,mode)
+        
         instance = self.get_object()
         orderitems=instance.items
         with transaction.atomic():
@@ -475,8 +476,8 @@ class OrderViewSet(ModelViewSet):
                 return response
             elif mode=='cancel':
                 if instance.payment_status=='C':
-                    instance.payed_total
                     customer=self.get_customer()
+                    transaction_obj=Transaction.objects.create(customer=customer,order=instance,amount=instance.payed_total,transaction_type='refund')
                     customer.wallet_balance=instance.grand_total
                     instance.payed_total=0
                     customer.save()
@@ -490,14 +491,14 @@ class OrderViewSet(ModelViewSet):
             
             elif mode == "return":
                 itemid = request.data.get('itemid', None)
-                print(f"Attempting to return item with id: {itemid}")
+             
                 try:
                     item = OrderItem.objects.get(id=itemid)
-                    print(f"Current item status before update: {item.status}")
+                 
                     item.status = 'RR'
                     item.save()
                     item.refresh_from_db()
-                    print(f"Item status after update: {item.status}")
+                   
                     messages.warning(request, f"Requested for return on item {str(item)}")
                 except Exception as e:
                     print(f"Error updating item status: {e}")
@@ -513,12 +514,7 @@ class OrderViewSet(ModelViewSet):
             content_type="text/html"
         )
             
-            
-    
 
-
-    
-    
     
 class WhishListViewSet(ModelViewSet):
     renderer_classes=[TemplateHTMLRenderer]
@@ -599,7 +595,7 @@ class CheckCoupon(APIView):
     
     def delete(self,request,*args, **kwargs):
         context={
-        'total':"$"+request.data['total']
+        'total':"₹"+request.data['total']
             
         }
         messages.info(request,"Coupon Removed Sucessfully")
@@ -627,7 +623,11 @@ class CheckCoupon(APIView):
             return Response(context,template_name="app/coupon-details.html",content_type='text/html')
         except Coupon.DoesNotExist:
             messages.warning(request,"Please Enter a valid Coupon code")
-            return Response(template_name="app/coupon-form.html",content_type="text/html")
+            context={
+                'total':total,
+                "htmx":request.htmx
+            }
+            return Response(context,template_name="app/coupon-form.html",content_type="text/html")
         
     
 class CheckoutView(APIView):
@@ -657,32 +657,53 @@ class CheckoutView(APIView):
  
 @csrf_exempt       
 def payment(request):
+    from django.db import transaction
     if request.method=="POST":
         print(request.POST)
         razorpay_payment_id=request.POST['razorpay_payment_id']
         razorpay_order_id=request.POST['razorpay_order_id']
         razorpay_signature=request.POST['razorpay_signature']
-        try:
-            
-            rzr=RazorpayOrders.objects.prefetch_related('order').get(id=razorpay_order_id)
-            if rzr.order.payment_status=='C':
+        with transaction.atomic():
+            try:
+                
+                rzr=RazorpayOrders.objects.prefetch_related('order').get(id=razorpay_order_id)
                 customer=Customer.objects.only('id','wallet_balance').get(user_id=request.user.id)
-                customer.wallet_balance+=rzr.order.grand_total
-                messages.warning(request,"Order payment seems to be already Completed. Amount will be credited to your wallet.")
-                return redirect(reverse('u-order-detail',args=[rzr.order.id])) 
-            rzr.rzr_payment_id=razorpay_payment_id
-            rzr.rzr_signature=razorpay_signature
-            rzr.order.order_status='PL'
-            rzr.order.payed_total=rzr.order.grand_total
-            rzr.order.payment_status='C'
-            rzr.order.save()
-            rzr.save()
-            return redirect(reverse('u-order-detail',args=[rzr.order.id]))
-        except:
-            return HttpResponse("Error in placing the order")
-        
-        
+                if rzr.order.payment_status=='C':
+                    customer.wallet_balance+=rzr.order.grand_total
+                    messages.warning(request,"Order payment seems to be already Completed. Amount will be credited to your wallet.")
+                    return redirect(reverse('u-order-detail',args=[rzr.order.id])) 
+                rzr.rzr_payment_id=razorpay_payment_id
+                rzr.rzr_signature=razorpay_signature
+                rzr.order.order_status='PL'
+                rzr.order.payed_total=rzr.order.grand_total
+                rzr.order.payment_status='C'
+                transaction_obj=Transaction.objects.create(customer=customer,order=rzr.order,amount=rzr.order.grand_total,transaction_type='order')
+                rzr.order.save()
+                rzr.save()
+                return redirect(reverse('u-order-detail',args=[rzr.order.id]))
+            except:
+                return HttpResponse("Error in placing the order")
+            
+    
+class TransactionViewSet(ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TransactionSerializer
+    renderer_classes=[TemplateHTMLRenderer]
+
+    def get_queryset(self):
+        return Transaction.objects.filter(customer__user=self.request.user).order_by('-created_at')
 
     
-        
-    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response= self.get_paginated_response(serializer.data)
+            response.template_name="app/transaction_list.html"
+            response.content_type="txt/html"
+            return response
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
