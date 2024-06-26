@@ -77,7 +77,7 @@ class Brand(models.Model):
     title = models.CharField(max_length=255)
     featured_product = models.ForeignKey(
         'Product', on_delete=models.SET_NULL, null=True,blank=True, related_name='f_product')
-    img = models.ImageField(upload_to='store/collections', default='null', null=True, blank=True)
+    img = models.ImageField(upload_to='store/collections', null=True, blank=True)
     description = models.TextField(default='Default Description',null=True, blank=True)
     active = models.BooleanField(default=False)
     
