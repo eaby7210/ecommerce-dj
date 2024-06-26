@@ -584,6 +584,7 @@ class WhishListViewSet(ModelViewSet):
   
 class CheckCoupon(APIView):
     renderer_classes=[TemplateHTMLRenderer]
+    permission_classes=[IsAuthenticated]
     
     def delete(self,request,*args, **kwargs):
         context={
@@ -623,6 +624,7 @@ class CheckCoupon(APIView):
     
 class CheckoutView(APIView):
     renderer_classes=[TemplateHTMLRenderer]
+    permission_classes=[IsAuthenticated]
     
     def get_customer(self):
         return Customer.objects.only('id').get(user_id=self.request.user.id)

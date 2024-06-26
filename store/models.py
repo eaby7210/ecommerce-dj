@@ -49,7 +49,7 @@ class Coupon(models.Model):
 
 class Main_Category(models.Model):
     title = models.CharField(max_length=100,unique=True)
-    img = models.ImageField(upload_to='store/categories', default='null', null=True, blank=True)
+    img = models.ImageField(upload_to='store/categories', null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     active = models.BooleanField(default=False)
 

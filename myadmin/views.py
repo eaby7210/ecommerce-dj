@@ -844,7 +844,7 @@ class SalesReportView(APIView):
         today = datetime.date.today()
 
         if date_range == 'daily':
-            start_date = today - timedelta(days=1)
+            start_date = today - datetime.timedelta(days=1)
             end_date = today
         elif date_range == 'monthly':
             start_date = today - timedelta(days=30)
