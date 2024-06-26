@@ -6,7 +6,8 @@
 
 {% block content %}
 <div class="container">
-    <form id="updateUserForm" class="form-horizontal" data-update-url="{%url 'main_category-detail' pk=category.id%}">
+    <form id="updateUserForm" class="form-horizontal" data-update-url="{%url 'main_category-detail' pk=category.id%}"
+        enctype="multipart/form-data">
         <fieldset>
 
 

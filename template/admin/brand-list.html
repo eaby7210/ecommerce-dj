@@ -25,7 +25,7 @@
     <summary class="h4">Add Barnd</summary>
     <div id="action-bar" class="container row justify-content-center">
         <div class="col-8">
-            <form>
+            <form enctype="multipart/form-data">
                 <div class="modal-body">
                     {% csrf_token %}
                     {% render_form serializer %}

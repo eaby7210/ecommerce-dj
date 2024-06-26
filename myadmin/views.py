@@ -773,7 +773,7 @@ class CouponViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            data=serializer.data
+            data=serializer.validated_data
             if data['valid_to']<=data['valid_from']:
                 messages.error(request,"Valid_form cannot be greated than valid_to")
                 context={
