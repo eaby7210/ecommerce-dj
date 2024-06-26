@@ -55,7 +55,9 @@ class ProductViewset(ProductPagination,ReadOnlyModelViewSet):
                             num_images=Count('images')
                         ).filter(
                             active=True,
-                            num_images__gt=0
+                            num_images__gt=0,
+                            category__active=True, 
+                            brand__active=True 
                         ).order_by('id').prefetch_related(
                             'images',
                             Prefetch(
@@ -73,7 +75,8 @@ class ProductViewset(ProductPagination,ReadOnlyModelViewSet):
                             num_images=Count('images')
                         ).prefetch_related('images').\
             select_related('brand').select_related('category').\
-                filter(num_images__gt=0,active=True).order_by('id')
+                filter(num_images__gt=0,active=True, category__active=True, 
+                            brand__active=True ).order_by('id')
     
     def get_template_names(self) -> list[str]:
         if self.action == 'list':
