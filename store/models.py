@@ -15,7 +15,7 @@ def validate_valid_from(value):
     """
     Validator to ensure valid_from is greater than today's date.
     """
-    if value <= date.today():
+    if value >= date.today():
         raise ValidationError('Valid From date must be today or in the future.')
     
 class Coupon(models.Model):

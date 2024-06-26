@@ -12,7 +12,7 @@ class CategoryPagination(PageNumberPagination):
         total_pages=total_products//self.page_size
         if total_products % self.page_size != 0:
             total_pages += 1
-        # print(data)
+     
         return Response({
             'serializer':serializer,
             'page_number':self.page.number,
@@ -34,7 +34,7 @@ class ProductPagination(PageNumberPagination):
         total_pages=total_products//self.page_size
         if total_products % self.page_size != 0:
             total_pages += 1
-        # print(data)
+      
         return Response({
             'serializer':serializer,
             'page_number':self.page.number,
@@ -55,7 +55,7 @@ class BrandPagination(PageNumberPagination):
         total_pages=total_products//self.page_size
         if total_products % self.page_size != 0:
             total_pages += 1
-        # print(data)
+ 
         return {
             'serializer':serializer,
             'page_number':self.page.number,
@@ -100,7 +100,7 @@ class SalesReportPagination(PageNumberPagination):
 #         total_pages=total_products//self.page_size
 #         if total_products % self.page_size != 0:
 #             total_pages += 1
-#         # print(data)
+#      
 #         return {
 #             # 'serializer':serializer,
 #             'page_number':self.page.number,

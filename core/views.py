@@ -37,7 +37,7 @@ class SignupAPIView(APIView):
             context={
                 "serializer":serializer
             }
-            print(context)
+       
             return Response(context,template_name='authentication/signup.html',content_type='text/html')
     
     def post(self, request, *args, **kwargs):
@@ -76,7 +76,7 @@ class VerifyEmailView(APIView):
         except:
             messages.warning(request,"User does not exist")
             return redirect('home')
-        print("user-email",user.email)
+
         email=EmailAddress.objects.get(email=user.email)
         if not email.verified:
             context={
@@ -149,7 +149,7 @@ class ResendEmailView(APIView):
             messages.success(request, "A new OTP has been sent to your email-address")
             return Response(template_name="messages.html",content_type="text/html")
         else:
-            print("error")
+        
             messages.error(request, "An Error Occured please try again")
             return Response(template_name="messages.html",content_type="text/html")
             
@@ -172,7 +172,7 @@ class LoginAPIView(APIView):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             user = auth.authenticate(request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
-            # print(user.is_active,user.is_staff)
+         
             if bool(user and user.is_staff):
                 auth.login(request,user)
                 messages.info(request,message='Logged in as admin succesfully')
@@ -248,7 +248,7 @@ class ProfileAPIView(APIView):
         return Response(context,template_name="authentication/profile.html",content_type="text/html")
     def put(self,request):
         customer=self.get_queryset()
-        print(request.data)
+    
         mode=request.data.get('mode',None)
         if mode=="chnge_pass":
             data={key:value for key,value in request.data.items() if key != "mode"}
@@ -264,7 +264,7 @@ class ProfileAPIView(APIView):
                 context={
                     'chgepass':pass_serializer,
                 }
-                print(context)
+             
                 return Response(context,template_name="app/pass-change-form.html",content_type="text/html",status=status.HTTP_400_BAD_REQUEST)
         else:           
             user_data={key: value for key, value in request.data.items()  if bool(key!="birth_date" and key!="mode")}
@@ -280,7 +280,7 @@ class ProfileAPIView(APIView):
                 # customer_serializer.save()
                 # customer_data=customer_serializer.data
                 # customer_data['user']=user_serializer.data
-                # print("cu:",customer_data)
+    
                 # # cache.invalidate_queries(Customer.objects)
                 # if getattr(customer, '_prefetched_objects_cache', None):
                 #     customer._prefetched_objects_cache = {}
@@ -344,7 +344,7 @@ class AddressViewSet(ModelViewSet,AdressPagination):
         queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
-        print(page)
+   
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             response= self.get_paginated_response(serializer.data)
@@ -391,7 +391,7 @@ class AddressViewSet(ModelViewSet,AdressPagination):
     
     def create(self, request, *args, **kwargs):
         data={key: value for key, value in request.POST.items()}
-        print(data)
+
         mode=data.pop('mode')
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
@@ -417,7 +417,7 @@ class AddressViewSet(ModelViewSet,AdressPagination):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
-            print(serializer.validated_data)
+
             instance,message=serializer.update(instance,serializer.validated_data)
             messages.success(request,message)
             context={

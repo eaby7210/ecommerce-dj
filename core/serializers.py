@@ -33,18 +33,18 @@ def sends_mail(username,otp):
     receiver = ["eabythomascu@gmail.com"]
     try:
         send_mail(subject,message,from_email=from_email,recipient_list=receiver,fail_silently=False)
-        print("Email sent successfully!")
+       
         return True
     except BadHeaderError as e:
-        print("Invalid header found in email:", e)
+    
         return False
     except Exception as e:  # Catch other potential exceptions
-        print("An error occurred while sending email:", e)
+      
         return False
     
 def email_otp(user):
     if user.is_superuser:
-        print(user.is_superuser)
+      
         return False
 
     else:
@@ -55,20 +55,20 @@ def email_otp(user):
             email_otp.otp=otp
             email_otp.expires_at=timezone.now()+timezone.timedelta(minutes=5)
             email_otp.save()
-            print("exist",email_otp.otp)
+          
         except EmailOTP.DoesNotExist as e:
-            print("no data",e)
+          
             email_otp=EmailOTP.objects.create(
                 user=user,
                 otp=otp,
                 expires_at=timezone.now() + timezone.timedelta(minutes=5),
                 created_at=timezone.now(),
                 )
-            print("New",email_otp.otp)
+      
             email_otp.save()
-        print("saved")
+        
         status=sends_mail(user.username,otp)
-        print("status:",status)
+       
         if status:
             return True
         else:
@@ -327,7 +327,7 @@ class AddressSerrializer(serializers.ModelSerializer):
         customer=self.context['customer']
         validated_data = {**self.validated_data}
         validated_data['customer']=customer
-        print("vali_data: ",validated_data)
+   
         primary=validated_data.get('primary',False)
         if primary:
             ol_address=Address.objects.filter(customer=customer,primary=True)

@@ -1,4 +1,3 @@
-import pprint
 from django.shortcuts import render,get_object_or_404,redirect
 from django.urls import reverse
 # from django.core.cache import cache
@@ -287,7 +286,7 @@ class UserViewSet(ModelViewSet):
             user_data['is_active']=False
         if not 'is_staff' in user_data:
             user_data['is_staff']=False
-        # print("\nuser: ",user_data,"\ncustomer: ",customer_data)
+  
         user_serializer=UserUpdateSerializer(instance.user,data=user_data,partial=True)
         if user_serializer.is_valid():
             serializer=CustomerUpdateSerializer(instance,data=customer_data,partial=True)
@@ -303,7 +302,7 @@ class UserViewSet(ModelViewSet):
                 messages.success(request,"User profile updated successfully")
                 return HttpResponse("success",status=200)
             else:
-                # print("cutomer-error: ",serializer.errors,)
+         
                 
                 return HttpResponse(serializer.errors,status=406)
         else:
@@ -311,7 +310,7 @@ class UserViewSet(ModelViewSet):
         
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
+ 
         serializer = UserSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -320,7 +319,7 @@ class UserViewSet(ModelViewSet):
             return redirect('admin-users-list')
         else:
             errors=[f"{field} =>{error[0]}" for field,error in serializer.errors.items()]
-            print(errors)
+  
             for error in errors:
                 messages.error(request,error)
             return redirect('admin-users-list')
@@ -333,7 +332,7 @@ class UserViewSet(ModelViewSet):
             'serializer':serializer,
             'user':serializer.data   
         }
-        # print(serializer.data)
+
         return Response(context,status=status.HTTP_200_OK)
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.queryset, many=True)
@@ -341,7 +340,7 @@ class UserViewSet(ModelViewSet):
             'users': serializer.data,
             'serializer':UserSerializer()
         }
-        print(serializer.data)
+       
         response=Response(context, status=status.HTTP_200_OK)
         response['Cache-Control'] = 'no-cache'
         return response
@@ -382,7 +381,7 @@ class ProductViewSet(ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        print(serializer.data)
+
         context={
             'serializer':serializer,
             'product':serializer.data
@@ -392,11 +391,10 @@ class ProductViewSet(ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        print(request.data)
-        print(instance.id)
+ 
         serializer=ProductAdminSerializer(instance,data=request.data,partial=True)
         if serializer.is_valid():
-            print(serializer.validated_data)
+            
             if not 'active' in serializer.validated_data:
                 serializer.validated_data['active']=False
             serializer.save()
@@ -404,11 +402,11 @@ class ProductViewSet(ModelViewSet):
             messages.success(request,"Product updated successfully")
             return HttpResponse("success",status=200)
         else:
-            print("cutomer-error: ",serializer.errors,)
+        
             return HttpResponse(serializer.errors,status=406)
  
     def create(self, request, *args, **kwargs):
-        print(request.data)
+        
         serializer = ProductAdminSerializer(data=request.data)
         if serializer.is_valid():
             instance=serializer.save()
@@ -455,17 +453,16 @@ class CategoryAdminViewSet(ModelViewSet):
             return redirect('main_category-list')
         else:
             errors=[f"{field} =>{error[0]}" for field,error in serializer.errors.items()]
-            print(errors)
+          
             for error in errors:
                 messages.error(request,error)
             return redirect('main_category-list')
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        print(request.data)
-        print(instance.id)
+     
         serializer=CategoryAdminSerializer(instance,data=request.data,partial=True)
         if serializer.is_valid():
-            print(serializer.validated_data)
+           
             if not 'active' in serializer.validated_data:
                 serializer.validated_data['active']=False
             serializer.save()
@@ -473,14 +470,14 @@ class CategoryAdminViewSet(ModelViewSet):
             messages.success(request,"Category updated successfully")
             return HttpResponse("success",status=200)
         else:
-            print("cutomer-error: ",serializer.errors,)
+           
             return HttpResponse(serializer.errors,status=406)
         
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = CategoryAdminSerializer(instance)
-        print(serializer.data)
+     
         context={
             'serializer':serializer,
             'category':serializer.data
@@ -544,7 +541,7 @@ class BrandViewSet(ModelViewSet):
         return Response(context)
     def list(self, request, *args, **kwargs):
         context=self.get_list()
-        print(context)
+
         return Response(context)
     
     def update(self, request, *args, **kwargs):
@@ -563,7 +560,7 @@ class BrandViewSet(ModelViewSet):
             
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        print(instance.active)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
         
     
@@ -599,7 +596,7 @@ class ProductImageViewSet(ModelViewSet,PageNumberPagination):
         }
         return Response(context)
     def create(self, request, *args, **kwargs):
-        print(request.data)
+
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             instance=serializer.save()
@@ -610,34 +607,31 @@ class ProductImageViewSet(ModelViewSet,PageNumberPagination):
             }
             return Response(context,template_name="admin/product-newimage-row.html",content_type="text/html")
         else:
-            pprint.pprint(serializer.errors)
             return HttpResponse("error")
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = ProductImageSerializer(instance)
-        print(serializer.data)
+        
         context={
             'serializer':serializer,
             'image':serializer.data,
             'product_id':self.kwargs['product_pk'],
             
         }
-        pprint.pprint(context)
+       
         return Response(context,status=status.HTTP_200_OK)
     def update(self, request, *args, **kwargs):
-        print(request.data)
+
         instance = self.get_object()
-        print(request.data)
-        print(instance.id)
+
         serializer=ProductImageSerializer(instance,data=request.data,partial=True)
         if serializer.is_valid():
-            print(serializer.validated_data)
+
             serializer.save()
             
             messages.success(request,"Product image updated successfully")
             return HttpResponse("success",status=200)
         else:
-            print("cutomer-error: ",serializer.errors,)
             return HttpResponse(serializer.errors,status=406)
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -695,7 +689,6 @@ class OrderViewSet(ModelViewSet):
                     message=f"Item {item.product.title} has delivered successfully"
                 elif item.status == 'P':
                     item.status='S'
-                    print(item.status)
                     message=f"Item {item.product.title} has shipped successfully"
                 elif item.status=="RA":
                     item.status="RE"
@@ -711,7 +704,6 @@ class OrderViewSet(ModelViewSet):
                     customer.wallet_balance+=item_total-item_discount
                     customer.save()
                     message=f"Item {item.product.title} has returned successfully.Amount credited to Customer wallet"
-            print(item.status)
             item.save()
             messages.info(request,message)
             item_serializer=OrderItemSerializer(item)
@@ -720,7 +712,6 @@ class OrderViewSet(ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         mode=None
         if bool(request.GET):
-            print(request.GET)
             mode=request.GET['mode']
         instance = self.get_object()
         
@@ -784,7 +775,7 @@ class CouponViewSet(ModelViewSet):
         if serializer.is_valid():
             data=serializer.data
             if data['valid_to']<=data['valid_from']:
-                messages.error(request,"Valid_form cannot be greated thab valid_to")
+                messages.error(request,"Valid_form cannot be greated than valid_to")
                 context={
                 'serializer':serializer
                 }
@@ -947,7 +938,6 @@ class SalesReportView(APIView):
         if not request.htmx:
             return Response(template_name="admin/sales_report_page.html",content_type="text/html")
         else:
-            print(request.data)
             date_range = request.GET.get('date_range', 'daily')
             start_date = request.GET.get('start_date')
             end_date = request.GET.get('end_date')
@@ -973,11 +963,8 @@ class SalesReportView(APIView):
         date_range = request.data.get('date_range', 'daily')
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
-        print(request.data)
         orders = self.get_orders(date_range, start_date, end_date)
-        print(orders)
         context = self.get_context_data(orders, date_range,start_date, end_date)
-        print(context)
         return self.export_to_pdf(context)
         
 

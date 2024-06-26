@@ -15,7 +15,7 @@ router.register('coupon',views.CouponViewSet,basename="admin-coupon")
 
 product_router=routers.NestedSimpleRouter(router,'products',lookup='product')
 product_router.register('images',views.ProductImageViewSet,basename='product_images')
-# print(router.urls)
+
 
 
 urlpatterns=[

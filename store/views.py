@@ -14,7 +14,6 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.viewsets import ModelViewSet, GenericViewSet,ReadOnlyModelViewSet
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework import status
-import pprint
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from .models import Product,Brand,Transaction
@@ -177,7 +176,6 @@ class CartViewSet(ModelViewSet):
             return redirect('u-product-list')
         mode=None
         if bool(request.GET):
-            print(request.GET)
             mode=request.GET['mode']
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -199,7 +197,6 @@ class CartViewSet(ModelViewSet):
         return Response(serializer.data)
     
     def create(self, request, *args, **kwargs):
-        print(request.data)
         data={key: value for key, value in request.data.items()}
         mode=data.pop('mode')
         page=data.pop('in')
@@ -230,7 +227,6 @@ class CartViewSet(ModelViewSet):
                     context={
                         'item':results.data
                     }
-                    print(context)
                     return Response(context,template_name="app/wishitem.html",content_type="text/html")
                 wishitem=WishList.objects.get(
                     customer=self.get_customer_id(),
@@ -263,7 +259,6 @@ class CartViewSet(ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         data={key: value for key, value in request.data.items()}
-        print(data)
         mode=data.pop('mode')
         
         serializer = self.get_serializer(data=data)
@@ -271,7 +266,6 @@ class CartViewSet(ModelViewSet):
             instance,message=serializer.save(mode=mode)
             cartserializer=CartSerializer(instance=instance)
             cart=cartserializer.data
-            print(cart)
             messages.info(request,message=message)
             context={
                 "item":cart
@@ -457,7 +451,7 @@ class OrderViewSet(ModelViewSet):
                 return response
                 
         else:
-            print(serializer.errors)
+            HttpResponse("Error on creating order")
         
     
     def update(self, request, *args, **kwargs):
@@ -501,8 +495,7 @@ class OrderViewSet(ModelViewSet):
                    
                     messages.warning(request, f"Requested for return on item {str(item)}")
                 except Exception as e:
-                    print(f"Error updating item status: {e}")
-                    messages.error(request, f"Could not process return for item {itemid}")
+                    messages.error(request, f"Could not process return for item {itemid}",e)
 
         instance.refresh_from_db()
         order =instance
@@ -558,7 +551,6 @@ class WhishListViewSet(ModelViewSet):
 
     
     def create(self, request, *args, **kwargs):
-        print(request.data)
         data={key: value for key, value in request.data.items()}
         mode=data.pop('mode',None)
         serializer = self.get_serializer(data=data)
@@ -602,7 +594,6 @@ class CheckCoupon(APIView):
         return Response(context,template_name="app/coupon-form.html",content_type="text/html")
     
     def post(self,request,*args, **kwargs):
-        print(request.data)
         coupon=request.data['coupon'].strip()
         total=Decimal(request.data['grand_total'])
         try:
@@ -659,7 +650,6 @@ class CheckoutView(APIView):
 def payment(request):
     from django.db import transaction
     if request.method=="POST":
-        print(request.POST)
         razorpay_payment_id=request.POST['razorpay_payment_id']
         razorpay_order_id=request.POST['razorpay_order_id']
         razorpay_signature=request.POST['razorpay_signature']

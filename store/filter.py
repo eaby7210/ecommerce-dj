@@ -52,7 +52,6 @@ class CustomPagination(PageNumberPagination):
         total_pages=total_products//self.page_size
         if total_products % self.page_size != 0:
             total_pages += 1
-        # print(data)
         return Response({
             'page_number':self.page.number,
             'total_pages':total_pages,

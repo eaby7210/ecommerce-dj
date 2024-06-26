@@ -16,7 +16,7 @@
 
 #         else:
 #             otp=generate_random_number()
-#             print("token:",otp)
+
 #             email_otp=EmailOTP.objects.create(
 #                 user=instance,
 #                 expires_at=timezone.now() + timezone.timedelta(minutes=5),
@@ -25,7 +25,7 @@
 #                 )
 #             instance.is_active=False 
 #             instance.save()
-#             print(email_otp)
+
 #             email_otp.save()
         
 #         # email credentials
@@ -42,8 +42,7 @@
 #         # send email
 #         try:
 #             send_mail(subject,message,from_email="eaby7210@gmail.com",recipient_list=receiver,fail_silently=False)
-#             print("Email sent successfully!")
+
 #         except BadHeaderError as e:
-#             print("Invalid header found in email:", e)
+
 #         except Exception as e:  # Catch other potential exceptions
-#             print("An error occurred while sending email:", e)

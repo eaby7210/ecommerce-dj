@@ -8,12 +8,7 @@ User=get_user_model()
 def collection(request):
     # session_key=request.session.session_key
     # session=Session.objects.get(session_key=session_key)
-    if bool(request.GET):
-        print("context:",request.GET)
-    elif bool(request.POST):
-        print("context:",request.POST)
-    # print(request.user.is_authenticated)
-    # print(request.user)
+    
     try:
         categories=Main_Category.objects.annotate(products_count=Count('categories_products')).filter(active=True)
         serializer=CategorySerializer(categories,many=True)
@@ -35,7 +30,6 @@ def userCustomer(request):
                 'wish_count':wish_count
             }
         except Exception as e:
-            print(e)
             return {'user':None,'customer':None}
         
     else:

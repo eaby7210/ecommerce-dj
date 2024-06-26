@@ -435,13 +435,12 @@ class CouponCUSerializer(serializers.ModelSerializer):
             """
             valid_from = data.get('valid_from')
             valid_to = data.get('valid_to')
-            print(valid_from," --- ",valid_to)
             
             if valid_from and valid_to:
                 if valid_to <= valid_from:
                     raise serializers.ValidationError("Valid To date must be after Valid From date.")
             else:
-                raise serializers.ValidationError("valid from and to Must mout be empty")
+                raise serializers.ValidationError("valid from and to Must not be empty")
 
             return data
         
