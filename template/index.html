@@ -191,7 +191,7 @@
                                 <a class="nav-link me-4 active" href="{%url 'home'%}">Home</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link me-4" href="about.html">About</a>
+                                <a class="nav-link me-4" href="#">About</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link me-4" href="{%url 'u-product-list'%}">Shop</a>
@@ -203,7 +203,7 @@
                                 <a class="nav-link me-4 dropdown-toggle" data-bs-toggle="dropdown" href="#"
                                     role="button" aria-expanded="false">Categories</a>
                                 <ul class="dropdown-menu animate slide border">
-                                    <li><a class="dropdown-item" href="{%url 'u-category-list'%}">All Categories</a>
+                                    <li><a class="dropdown-item" href="#">All Categories</a>
                                     </li>
                                     <li>
                                         <hr class="dropdown-divider">
@@ -213,8 +213,8 @@
 
 
                                     <li>
-                                        <a href="about.html" title="{{category.title}}"
-                                            class="dropdown-item fw-light">{{category.title}}
+                                        <a href="{%url 'u-product-list'%}?category={{category.id}}"
+                                            title="{{category.title}}" class="dropdown-item fw-light">{{category.title}}
                                             <span class="badge bg-primary">{{category.products_count}}</span>
                                         </a>
                                     </li>
@@ -223,13 +223,10 @@
                                 </ul>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link me-4" href="contact.html">Contact</a>
+                                <a class="nav-link me-4" href="#">Contact</a>
                             </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link text-decoration-underline me-4" href=""
-                                    target="_blank">{{customer.membership}}</a>
-                            </li>
+
                         </ul>
                         <div class="user-items d-flex">
                             <ul class="d-flex justify-content-end list-unstyled mb-0">

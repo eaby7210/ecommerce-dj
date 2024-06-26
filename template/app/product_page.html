@@ -121,7 +121,18 @@
 
                     <div class="price-area my-4">
 
-                        <p class="new-price text-bold mb-1">₹{{product.unit_price}}</p>
+
+
+                        {%if product.unit_price == product.effective_price%}
+                        <h6 class="new-price text-bold mb-1">₹{{product.effective_price}}</h6>
+                        {%else%}
+                        <div class="d-flex flex-row gap-3 mb-2">
+                            <span
+                                class="new-price text-bold mb-1 text-decoration-line-through ">₹{{product.unit_price}}</span>
+                            <span class="new-price text-bold mb-1">₹{{product.effective_price}}</span>
+                        </div>
+                        {%endif%}
+
                         <p class="text-secondary mb-1">(Additional tax may apply on checkout)</p>
                         {% if product.stock %}
                         <p class="text-end fs-6 col-3 text-white bg-danger text-center fw-semibold my-0 ">

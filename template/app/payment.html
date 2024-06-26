@@ -62,7 +62,18 @@
 
                     <h4 class="card-title">{{item.product.title}}</h4>
                     <p class="card-text">Quantity: {{item.quantity}}</p>
-                    <p class="card-text">Unit Price: {{item.product.unit_price}}</p>
+
+
+                    {%if item.product.unit_price == item.product.effective_price%}
+                    <p class="card-text">Unit Price: ₹{{item.product.effective_price}}</p>
+                    {%else%}
+                    <div class="d-flex flex-row gap-1">
+                        <span class="card-text">Unit Price: </span>
+                        <span class="card-text text-decoration-line-through">₹{{item.product.unit_price}}</span>
+                        <span class="card-text">₹{{item.product.effective_price}}</span>
+                    </div>
+                    {%endif%}
+
                     <div class="col-1"><img class="img-fluid" src="/media/{{item.product.image}}" alt="Product Image">
                     </div>
                 </div>

@@ -23,6 +23,7 @@ urlpatterns=[
     path('',include(product_router.urls)),
     path('',include(router.urls)),
     path('nav-updates',views.NavUpdateView.as_view(),name="nav-update"),
+    path('sales-report/',views.SalesReportView.as_view(),name='sales-report')
 
     
   ]  

@@ -2,7 +2,14 @@
     <div class="row">
         <div class="col">
             <h5 class="card-title">{{item.product.title}}</h5>
-            <h6 class="card-subtitle mb-2 text-body-secondary col">₹{{item.product.unit_price}}</h6>
+            {%if item.product.unit_price == item.product.effective_price%}
+            <h6 class="card-subtitle mb-2 text-body-secondary col">₹{{item.product.effective_price}}</h6>
+            {%else%}
+            <div class="d-flex flex-row text-body-secondary col gap-3">
+                <span class="card-subtitle text-decoration-line-through ">₹{{item.product.unit_price}}</span>
+                <span class="card-subtitle ">₹{{item.product.effective_price}}</span>
+            </div>
+            {%endif%}
         </div>
 
         <div class="col">

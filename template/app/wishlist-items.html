@@ -2,13 +2,20 @@
 
 
 
-<div class="card mb-4" id="cartitem{{item.id}}">
+<div class="card mb-4 " id="cartitem{{item.id}}">
     <img src="/media/{{item.product.image}}" class="card-img-top img-thumbnail" alt="...">
-    <div class="card-body">
+    <div class="card-body align-self-end">
         <h5 class="card-title">{{item.product.title}}</h5>
-        <p class="card-text">₹ {{item.product.unit_price}}</p>
+        {%if item.product.unit_price == item.product.effective_price%}
+        <h6 class="card-text mb-2 ">₹{{item.product.effective_price}}</h6>
+        {%else%}
+        <div class="d-flex flex-row gap-3 mb-2">
+            <span class="card-text text-decoration-line-through ">₹{{item.product.unit_price}}</span>
+            <span class="card-text ">₹{{item.product.effective_price}}</span>
+        </div>
+        {%endif%}
         {% if item.product.stock %}
-        <p class="card-text text-danger">{{item.product.stock}}</p>
+        <p class="card-text text-danger my-0">{{item.product.stock}}</p>
         {% endif %}
         <button type="button" hx-post="{%url 'u-cart-list'%}" hx-trigger="click" hx-target="#cartitem{{item.id}}"
             hx-swap="outerHTML" hx-vals='{"mode":"add","quantity":1,"in":"wishlist","product_id":{{item.product.id}}}'

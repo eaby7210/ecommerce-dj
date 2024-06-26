@@ -1,0 +1,71 @@
+<div>
+    {% for order in orders %}
+    <div class="card mb-4">
+        <div class="card-header">
+            Order ID: {{ order.id }}
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-row justify-content-between">
+                <h5 class="card-title">Customer: {{ order.customer }}</h5>
+                <p class="card-text">Placed at: {{ order.placed_at }}</p>
+                <p class="card-text">Total: ₹{{ order.total }}</p>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="orderHeading">
+                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#orderitem{{order.id}}" aria-expanded="true"
+                        aria-controls="orderitem{{order.id}}">
+                        Items
+                    </button>
+                </h2>
+                <div id="orderitem{{order.id}}" class="accordion-collapse collapse" aria-labelledby="orderHeading"
+                    data-bs-parent="#orderAccordian">
+                    <div class="accordion-body">
+                        <ul class="list-group list-group-flush">
+                            {%for item in order.items.all %}
+                            <li class="list-group-item d-flex flex-row justify-content-between">
+                                <span><img src="{{item.product.images.0.url.url}}"></span>
+                                <span><strong>Product:</strong> {{ item.product.title }}</span>
+                                <span><strong>Quantity:</strong> {{ item.quantity }}</span>
+                                <span><strong>Unit Price:</strong> {{ item.unit_price }}</span>
+
+                            </li>
+                            {%endfor%}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <small class="text-muted">Placed at: {{ order.placed_at }}</small>
+        </div>
+    </div>
+    {% endfor %}
+    {%if next_n%}
+    <div id="next">
+        <div hx-get="{% url 'sales-report' %}"
+            hx-vals='{"date_range":"{{date_range}}","page":{{next_n}},"start_date":"{{start_date}}","end_date":"{{end_date}}"}'
+            hx-trigger="revealed" hx-target="#next" hx-swap="outerHTML" hx-indicator="#next-indicator">.</div>
+        <div id="next-indicator" class="htmx-indicator">
+            <div class="card mb-3">
+                <div class="card-header card-header bg-secondary placeholder-glow">
+                    <h5 class="card-title placeholder-glow">
+                        <span class="placeholder col-6"></span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text placeholder-glow">
+                        <span class="placeholder col-7"></span><span class="placeholder col-4"></span>
+                        <span class="placeholder col-4"></span><span class="placeholder col-6"></span>
+                        <span class="placeholder col-8"></span><span class="placeholder col-7"></span>
+                        <span class="placeholder col-4"></span><span class="placeholder col-4"></span>
+
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {%else%}
+    <p class="text-danger text-center">---End---</p>
+    {%endif%}
+</div>

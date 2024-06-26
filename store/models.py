@@ -1,9 +1,11 @@
 from django.db import models,transaction
 from django.core.validators import MinValueValidator, MaxValueValidator,RegexValidator
 from django.core.exceptions import ValidationError
-from datetime import date, timedelta
+from datetime import date
 from django.conf import settings
 from django.contrib import admin
+from django.utils import timezone
+from decimal import Decimal, ROUND_HALF_UP
 # from django.db.models.functions import Coalesce
 # from uuid import uuid4
 
@@ -47,10 +49,22 @@ class Coupon(models.Model):
 
 class Main_Category(models.Model):
     title = models.CharField(max_length=100,unique=True)
-    description = models.TextField(default='Default Description')
     img = models.ImageField(upload_to='store/categories', default='null', null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     active = models.BooleanField(default=False)
+
+    offer_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
+    offer_start = models.DateField(null=True, blank=True)
+    offer_end = models.DateField(null=True, blank=True)
+    
+    def get_offer_discount(self):
+        if self.is_on_offer():
+            return (self.offer_percent / Decimal('100')).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        return Decimal('0.00')
+    def is_on_offer(self):
+        today = date.today()
+        return self.offer_percent is not None and self.offer_start <= today <= self.offer_end
+
 
 
     def __str__(self):
@@ -78,19 +92,45 @@ class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField()
     description = models.TextField(null=True, blank=True)
-    unit_price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1)])
+    unit_price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(Decimal(0))])
     inventory = models.IntegerField(validators=[MinValueValidator(0)])
     last_update = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=False)
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, related_name='brand_products')
     category=models.ForeignKey(Main_Category,null=True,blank=True, on_delete=models.PROTECT, related_name='categories_products')
-    rating = models.DecimalField(null=True,blank=True,max_digits=2, decimal_places=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    rating = models.DecimalField(null=True,blank=True,max_digits=2, decimal_places=1, validators=[MinValueValidator(Decimal(1)), MaxValueValidator(Decimal(5))])
 
+    offer_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(Decimal(0)),MaxValueValidator(Decimal(100))])
+    offer_start = models.DateField(null=True, blank=True)
+    offer_end = models.DateField(null=True, blank=True)
     def __str__(self):
         return self.title
 
     class Meta:
         ordering = ['title']
+        
+    def is_on_offer(self):
+        today = date.today()
+        return self.offer_percent is not None and self.offer_start <= today <= self.offer_end
+
+    def get_offer_discount(self):
+        if self.is_on_offer():
+            return (self.offer_percent / Decimal('100')).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        return Decimal('0.00')
+
+    def effective_price(self):
+        price = self.unit_price
+        discount = self.get_offer_discount()
+
+        if discount > 0:
+            effective_price = (price * (1 - discount)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        elif self.category and self.category.is_on_offer():
+            category_discount = self.category.get_offer_discount()
+            effective_price = (price * (1 - category_discount)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        else:
+            effective_price = price.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        
+        return effective_price
 
 
 class ProductImage(models.Model):
@@ -332,44 +372,7 @@ class WishList(models.Model):
     customer=models.ForeignKey(Customer,on_delete=models.CASCADE,related_name="customer_wish")
     class Meta:
         unique_together=[['product','customer']]
-        
-        
-
-
-
-class CategoryOffer(models.Model):
-    title=models.CharField(max_length=50)
-    category = models.ForeignKey(Main_Category, on_delete=models.CASCADE, related_name='offers')
-    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-
-    def __str__(self):
-        return f"{self.discount_percentage}% off on {self.category.title}"
-
-
-class ProductOffer(models.Model):
-    title=models.CharField(max_length=50)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='offers')
-    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-
-    def __str__(self):
-        return f"{self.discount_percentage}% off on {self.product.title}"
-    
-    
-class ReferralOffer(models.Model):
-    title=models.CharField(max_length=50)
-    code = models.CharField(max_length=20, unique=True)
-    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"Referral code {self.code}: {self.discount_percentage}% off"
-    
+         
     
     
 class Banner(models.Model):

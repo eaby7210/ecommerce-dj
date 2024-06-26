@@ -157,7 +157,7 @@
                 </div>
                 <div class="modal-body">
                     <form>
-                        {% render_form customer_serializer %}
+                        {{ form.as_p }}
 
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             Close

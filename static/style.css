@@ -977,3 +977,13 @@ select#input-sort {
     margin-bottom: 10px;
   }
 }
+
+.htmx-indicator {
+  display: none;
+}
+.htmx-request .htmx-indicator {
+  display: inline;
+}
+.htmx-request.htmx-indicator {
+  display: inline;
+}

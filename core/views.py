@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from .permission import *
 from rest_framework.permissions import IsAuthenticated
-from store.serializers import CustomerSerializer,CustomerProfileSerializer,CustomerProfiledSerializer
+from store.serializers import CustomerSerializer,CustomerProfiledSerializer
 from store.models import Customer
 from allauth.account.models import EmailAddress
 from django.contrib.auth.hashers import check_password
@@ -237,9 +237,9 @@ class ProfileAPIView(APIView):
         customer=self.get_queryset()
         user=customer.user
         serializer=CustomerSerializer(customer)
-        
+        form=UserCustomerForm(instance=request.user)
         context={
-            'customer_serializer':CustomerProfileSerializer(customer),
+            'form':form,
             'serializer':UserNormalUpdateSerializer(),
             'customer':serializer.data,
             'chgepass':ChangePasswordSerializer(),
@@ -266,44 +266,41 @@ class ProfileAPIView(APIView):
                 }
                 print(context)
                 return Response(context,template_name="app/pass-change-form.html",content_type="text/html",status=status.HTTP_400_BAD_REQUEST)
-                    
-        user_data={key: value for key, value in request.data.items()  if bool(key!="birth_date" and key!="mode")}
-        customer_data = {key: value for key, value in request.data.items() if bool(key=="birth_date" and key!="mode")}
-        print("\nuser: ",user_data,"\ncustomer: ",customer_data)
-        user_serializer=UserNormalUpdateSerializer(customer.user,data=user_data,partial=True)
-        customer_serializer=CustomerProfiledSerializer(customer,data=customer_data,partial=True)
-        user_is_valid = user_serializer.is_valid()
-        customer_is_valid = customer_serializer.is_valid()
-        if user_is_valid and customer_is_valid:
-            
-            user_serializer.save()
-            customer_serializer.save()
-            customer_data=customer_serializer.data
-            customer_data['user']=user_serializer.data
-            print("cu:",customer_data)
-            # cache.invalidate_queries(Customer.objects)
-            if getattr(customer, '_prefetched_objects_cache', None):
-                customer._prefetched_objects_cache = {}
-            messages.success(request,"Profile updated successfully")
-            context={
-                'customer_serializer':CustomerProfileSerializer(customer),
-                'serializer':CustomerProfileSerializer(customer),
-                'customer':customer_data,
-                'chgepass':ChangePasswordSerializer(),
-                'member_text':customer.get_membership_display()
-            }
-            return Response(context,template_name="app/about.html",content_type="text/html")
-        else:
-            messages.error(request,"Please enter valid details")
-            context={
-                'user_serializer':user_serializer,
-                'customer_serializer':customer_serializer,
-                'serializer':UserNormalUpdateSerializer(),
-                'customer':customer,
-                'chgepass':ChangePasswordSerializer(),
-                'member_text':customer.get_membership_display()
-            }
-            return Response(context,template_name="app/about.html",content_type="text/html")
+        else:           
+            user_data={key: value for key, value in request.data.items()  if bool(key!="birth_date" and key!="mode")}
+            customer_data = {key: value for key, value in request.data.items() if bool(key=="birth_date" and key!="mode")}
+            user_serializer=UserNormalUpdateSerializer(customer.user,data=user_data,partial=True)
+            customer_serializer=CustomerProfiledSerializer(customer,data=customer_data,partial=True)
+            form=UserCustomerForm(request.POST,instance=request.user)
+            user_is_valid = user_serializer.is_valid()
+            customer_is_valid = customer_serializer.is_valid()
+            if form.is_valid():
+                form.save()
+                # user_serializer.save()
+                # customer_serializer.save()
+                # customer_data=customer_serializer.data
+                # customer_data['user']=user_serializer.data
+                # print("cu:",customer_data)
+                # # cache.invalidate_queries(Customer.objects)
+                # if getattr(customer, '_prefetched_objects_cache', None):
+                #     customer._prefetched_objects_cache = {}
+                messages.success(request,"Profile updated successfully")
+                form = UserCustomerForm(instance=request.user)
+                context={
+                    'form':form,
+                    'chgepass':ChangePasswordSerializer(),
+                    'member_text':customer.get_membership_display()
+                }
+                return Response(context,template_name="app/about.html",content_type="text/html")
+            else:
+                messages.error(request,"Please enter valid details")
+                context={
+                  
+                    'form':form,
+                    'chgepass':ChangePasswordSerializer(),
+                    'member_text':customer.get_membership_display()
+                }
+                return Response(context,template_name="app/about.html",content_type="text/html")
     
 class AddressViewSet(ModelViewSet,AdressPagination):
     permission_classes=[IsAuthenticated]

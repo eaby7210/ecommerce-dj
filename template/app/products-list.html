@@ -73,7 +73,14 @@
                 <img src="{{item.images.0.image}}" class="card-img-top" alt="product item picture">
                 <h5 class="mt-2">{{item.title}}</h5>
             </a>
-            <span class="price text-primary fw-light mb-2">₹{{item.unit_price}}</span>
+            {%if item.unit_price == item.effective_price%}
+            <span class="price text-primary fw-light mb-2">₹{{item.effective_price}}</span>
+            {%else%}
+            <div class="d-flex flex-row justify-content-around mb-2">
+                <span class="price text-primary fw-light text-decoration-line-through ">₹{{item.unit_price}}</span>
+                <span class="price text-primary fw-light ">₹{{item.effective_price}}</span>
+            </div>
+            {%endif%}
             <ul class="list-group list-group-flush">
                 <li class="d-flex justify-content-between list-group-item">
                     <a class="fs-6">{{item.brand.title}}</a>

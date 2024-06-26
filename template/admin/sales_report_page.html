@@ -1,0 +1,91 @@
+{% extends "index.html" %} {% load rest_framework %} {% block menu %}
+{% include "admin/admin-nav.html" %} {% endblock menu %} {% block content %}
+
+<section class="container">
+    <h2>Sales Report</h2>
+    <form class="mb-4" hx-get="{% url 'sales-report' %}" hx-swap="innerHTML"
+        hx-trigger="change from:select, input delay:500ms" hx-target="#report" hx-indicator="#indicator">
+        <div class="row">
+            <div class="form-group col">
+                <label for="date_range">Date Range:</label>
+                <select id="date_range" name="date_range" class="form-control">
+                    <option value="daily" selected>Daily</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+
+            <div class="col-3 d-flex flex-row">
+                <div>
+                    <button type="button" class="btn btn-sm btn-dark px-1" hx-post="{% url 'sales-report' %}"
+                        hx-trigger="click" hx-indicator="#indicator">
+                        Export PDF
+                    </button>
+                </div>
+                <div id="indicator" class="htmx-indicator spinner-border text-danger m-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div id="custom_dates" style="display: none">
+            <div class="form-row row">
+                <div class="form-group col-md-6">
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" />
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="end_date">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="accordion accordion-flush" id="orderAccordian">
+
+
+
+
+
+
+        <div class="card-deck" id="report">
+
+            <div hx-get="{% url 'sales-report' %}" hx-swap="innerHTML" hx-vals='{"date_range":"daily"}'
+                hx-trigger="load" hx-target="#report" hx-indicator="#indicator">
+                <div id="next-indicator">
+                    <div class="card mb-3">
+                        <div class="card-header card-header bg-secondary placeholder-glow">
+                            <h5 class="card-title placeholder-glow">
+                                <span class="placeholder col-6"></span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text placeholder-glow">
+                                <span class="placeholder col-7"></span><span class="placeholder col-4"></span>
+                                <span class="placeholder col-4"></span><span class="placeholder col-6"></span>
+                                <span class="placeholder col-8"></span><span class="placeholder col-7"></span>
+                                <span class="placeholder col-4"></span><span class="placeholder col-4"></span>
+
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</section>
+<script>
+    document.getElementById("date_range").addEventListener("change", function () {
+        var customDates = document.getElementById("custom_dates");
+        if (this.value === "custom") {
+            customDates.style.display = "block";
+        } else {
+            customDates.style.display = "none";
+        }
+    });
+</script>
+{% endblock content %}

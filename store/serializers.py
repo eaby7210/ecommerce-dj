@@ -54,10 +54,14 @@ class ProductSerializer(serializers.ModelSerializer):
     category=CategorySerializer()
     brand=BrandDetailsSerializer()
     rating=serializers.CharField(read_only=True)
+    effective_price=serializers.SerializerMethodField(method_name="get_effective_price")
     class Meta:
         model = Product
-        fields = ['id', 'title','slug', 'description', 'inventory', 'unit_price','rating', 'price_with_tax', 'brand','images','category','active','stock',]
+        fields = ['id', 'title','slug', 'description', 'inventory', 'unit_price','rating', 'price_with_tax', 'brand','images','category','active','stock','offer_percent','offer_start','offer_end','effective_price']
 
+    def get_effective_price(self,product:Product):
+        
+        return product.effective_price()
     def stock_status(self,product:Product):
         if product.inventory==0:
             return "Out of Stock"
@@ -71,10 +75,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductAdminSerializer(serializers.ModelSerializer):
     price_with_tax = serializers.SerializerMethodField(method_name='calculate_tax')
+    effective_price=serializers.SerializerMethodField()
     class Meta:
         model = Product
-        fields = ['id', 'title','slug', 'description', 'inventory', 'unit_price', 'price_with_tax', 'brand','category','active']
+        fields = ['id', 'title','slug', 'description', 'inventory', 'unit_price', 'price_with_tax', 'brand','category','active','offer_percent','offer_start','offer_end','effective_price']
 
+    def get_effective_price(self,product:Product):
+        return product.effective_price()
     
 
     def calculate_tax(self, product: Product):
@@ -95,10 +102,14 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 class SimpleProductSerializer(serializers.ModelSerializer):
     stock=serializers.SerializerMethodField(method_name='stock_status')
     image=serializers.SerializerMethodField()
-    
+    effective_price=serializers.SerializerMethodField(method_name="get_effective_price")
     def get_image(self,product:Product):
         first_img=product.images.first()
         return str(first_img.image) if bool(first_img) else None
+    
+    def get_effective_price(self,product:Product):
+        return product.effective_price()
+    
     def stock_status(self,product:Product):
         if product.inventory==0:
             return "Out of Stock"
@@ -108,7 +119,7 @@ class SimpleProductSerializer(serializers.ModelSerializer):
             return None
     class Meta:
         model=Product
-        fields=['id', 'title', 'unit_price','stock','image']
+        fields=['id', 'title', 'unit_price','stock','image','effective_price']
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -116,7 +127,7 @@ class CartSerializer(serializers.ModelSerializer):
     total_price=serializers.SerializerMethodField()
     
     def get_total_price(self,cart_item:CartItem):
-        return cart_item.product.unit_price*cart_item.quantity
+        return cart_item.product.effective_price()*cart_item.quantity
     class Meta:
         model=CartItem
         fields=['id','quantity','product','customer','total_price']
@@ -209,11 +220,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         model=Customer
         fields=['id','membership','birth_date','wallet_balance','user']
 
-class CustomerProfileSerializer(serializers.ModelSerializer):
-    user=UserNormalUpdateSerializer()
-    class Meta:
-        model=Customer
-        fields=['id','birth_date','user']
+
 
 class CustomerProfiledSerializer(serializers.ModelSerializer):
     class Meta:
@@ -331,9 +338,9 @@ class CreateOrderSerializer(serializers.Serializer):
             order_items.append(OrderItem(
                 product=item.product,
                 quantity=item.quantity,
-                unit_price=item.product.unit_price
+                unit_price=item.product.effective_price()
             ))
-            total += item.product.unit_price * item.quantity
+            total += item.product.effective_price() * item.quantity
 
         # Check if the payment method is COD and total is above Rs 1000
         if payment_method == 'cod' and total > 1000:
@@ -494,10 +501,14 @@ class ProductCartSerializer(serializers.ModelSerializer):
     brand=BrandDetailsSerializer()
     cart_items=CartSimpleSerializer(many=True)
     wishlist_items=CheckWishListSerializer(many=True,read_only=True)
+    effective_price=serializers.SerializerMethodField(method_name="get_effective_price")
     class Meta:
         model = Product
-        fields = ['id', 'title','slug', 'description', 'inventory', 'unit_price','rating', 'price_with_tax', 'brand','images','category','active','stock','cart_items','wishlist_items']
+        fields = ['id', 'title','slug', 'description', 'inventory', 'unit_price','rating', 'price_with_tax', 'brand','images','category','active','stock','cart_items','wishlist_items','offer_percent','offer_start','offer_end','effective_price']
 
+    def get_effective_price(self,product:Product):
+        return product.effective_price()
+    
     def stock_status(self,product:Product):
         if product.inventory==0:
             return "Out of Stock"

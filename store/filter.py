@@ -7,6 +7,7 @@ class ProductPagination(PageNumberPagination):
     
     
     def get_paginated_response(self, data):
+        
         total_products=self.page.paginator.count
         total_pages=total_products//self.page_size
         if total_products % self.page_size != 0:

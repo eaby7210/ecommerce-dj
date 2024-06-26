@@ -844,4 +844,140 @@ class NavUpdateView(APIView):
     def get(self,request):
         return Response(template_name="admin/admin-nav-update.html",content_type="txt/html")
     
+class SalesReportView(APIView):
+    permission_classes=[IsAdminUser]
+    renderer_classes=[TemplateHTMLRenderer]
+    pagination_class=SalesReportPagination
+
+    def get_orders(self, date_range, start_date, end_date):
+        today = datetime.date.today()
+
+        if date_range == 'daily':
+            start_date = today - timedelta(days=1)
+            end_date = today
+        elif date_range == 'monthly':
+            start_date = today - timedelta(days=30)
+            end_date = today
+        elif date_range == 'yearly':
+            start_date = today - timedelta(days=365)
+            end_date = today
+        elif date_range == 'custom':
+            if(start_date=='' or end_date==''):
+                return None
+            else:
+                start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+                end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+                if start_date>end_date:
+                    return None
+
+
+        return Order.objects.filter(
+                    placed_at__date__range=[start_date, end_date]
+                ).select_related(
+                    'customer__user', 'applied_coupon'
+                    ).prefetch_related(
+                        'items__product', 'items__product__images'
+                    )
+
+    def get_context_data(self, orders, date_range,start_date,end_date):
+        total_sales = sum(order.total for order in orders)
+        total_orders = len(orders) if isinstance(orders, list) else orders.count()
+        return {
+            'orders': orders,
+            'total_sales': total_sales,
+            'total_orders': total_orders,
+            'date_range': date_range,
+            'start_date':start_date,
+            'end_date':end_date,
+        }
+   
+   
+    def generate_pdf(self, context):
+        from io import BytesIO
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+
+        # Title
+        p.setFont("Helvetica-Bold", 20)
+        p.drawString(100, height - 100, "Sales Report")
+
+        # Date range
+        p.setFont("Helvetica", 12)
+        p.drawString(100, height - 140, f"Report: {context['date_range'].title()}")
+
+        # Total sales and orders
+        p.drawString(100, height - 160, f"Total Sales: {context['total_sales']}")
+        p.drawString(100, height - 180, f"Total Orders: {context['total_orders']}")
+
+        # Orders table
+        p.drawString(100, height - 220, "Orders:")
+        p.setFont("Helvetica", 10)
+        p.drawString(100, height - 240, "Order ID")
+        p.drawString(200, height - 240, "Customer")
+        p.drawString(300, height - 240, "Total")
+        p.drawString(400, height - 240, "Date")
+
+        y = height - 260
+        for order in context['orders']:
+            p.drawString(100, y, str(order.id))
+            p.drawString(200, y, order.customer.user.username)
+            p.drawString(300, y, str(order.total))
+            p.drawString(400, y, order.placed_at.strftime('%Y-%m-%d'))
+            y -= 20
+            if y < 40:  # check if we need a new page
+                p.showPage()
+                y = height - 40
+                p.setFont("Helvetica", 10)
+
+        p.save()
+        buffer.seek(0)
+        return buffer
+    def export_to_pdf(self, context):
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="sales_report.pdf"'
+
+        buffer = self.generate_pdf(context)
+        response.write(buffer.getvalue())
+        buffer.close()
+
+        return response
     
+    def get(self,request):
+        if not request.htmx:
+            return Response(template_name="admin/sales_report_page.html",content_type="text/html")
+        else:
+            print(request.data)
+            date_range = request.GET.get('date_range', 'daily')
+            start_date = request.GET.get('start_date')
+            end_date = request.GET.get('end_date')
+
+            orders = self.get_orders(date_range, start_date, end_date)
+            if orders== None:
+                return HttpResponse('<p class="text-center text-danger">Please Choose a valid Date Range</p>')
+            
+
+            if 'export' in request.data:
+                context = self.get_context_data(orders, date_range)
+                return self.export_to_pdf(context)
+            else:
+                paginator = self.pagination_class()
+                paginated_orders = paginator.paginate_queryset(orders, request)
+                response= paginator.get_paginated_response(paginated_orders, date_range,start_date,end_date)
+                if response==None:
+                    return HttpResponse('<p class="text-center text-danger">No Orders in this query</p>')
+                response.template_name="admin/sales_report.html"
+                response.content_type="text/html"
+                return response
+    def post(self,request):
+        date_range = request.data.get('date_range', 'daily')
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        print(request.data)
+        orders = self.get_orders(date_range, start_date, end_date)
+        print(orders)
+        context = self.get_context_data(orders, date_range,start_date, end_date)
+        print(context)
+        return self.export_to_pdf(context)
+        
+

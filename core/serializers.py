@@ -9,11 +9,14 @@ from django.core.mail import send_mail,BadHeaderError
 from django.utils import timezone
 from django.contrib import messages
 from .models import EmailOTP
-from store.models import Address
+from store.models import Address,Customer
 from rest_framework import serializers
 from django.db import transaction
 from django import forms
+from django.contrib.auth.forms import UserChangeForm
+from django.core.exceptions import ValidationError
 import random
+from datetime import date
 
 
 
@@ -74,6 +77,45 @@ def email_otp(user):
 def generate_random_number():
   """Generates a random 6-digit integer."""
   return random.randint(100000, 999999)
+
+
+class UserCustomerForm(forms.ModelForm):
+    birth_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Select a date',
+                'type': 'date',  # HTML5 date input type
+            }
+        )
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date']
+        
+    def __init__(self, *args, **kwargs):
+        super(UserCustomerForm, self).__init__(*args, **kwargs)
+        # Include the birth_date field from the Customer model
+        if self.instance and hasattr(self.instance, 'user'):
+            self.fields['birth_date'].initial = self.instance.user.birth_date
+            
+    def clean_birth_date(self):
+        birth_date = self.cleaned_data.get('birth_date')
+        if birth_date and birth_date > date.today():
+            raise ValidationError("Birth date cannot be in the future.")
+        return birth_date
+        
+    def save(self, commit=True):
+        user = super(UserCustomerForm, self).save(commit=False)
+        if commit:
+            user.save()
+            # Save the Customer birth_date separately
+            if hasattr(user, 'user'):
+                user.user.birth_date = self.cleaned_data['birth_date']
+                user.user.save()
+        return user
 
 class EmailOTPSerializer(serializers.ModelSerializer):
     otp=serializers.CharField(
@@ -245,10 +287,20 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model=User
         fields=['id','first_name','last_name','username','email','phone','is_active','is_staff']
 
-class UserNormalUpdateSerializer(serializers.ModelSerializer):
-    class Meta():
-        model=User
-        fields=['id','first_name','last_name','username','email','phone']
+class UserNormalUpdateSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=30)
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField(max_length=254)
+    phone = serializers.CharField(
+        max_length=10,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$',
+                message='Phone number must be 10 digits long with no spaces or hyphens.'
+            )
+        ]
+    )
         
 class AddressSerrializer(serializers.ModelSerializer):
    
