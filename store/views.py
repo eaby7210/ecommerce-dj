@@ -591,8 +591,8 @@ class CheckCoupon(APIView):
     
     def delete(self,request,*args, **kwargs):
         context={
-        'total':"₹"+request.data['total']
-            
+        'total':"₹"+request.data['total'],
+           "htmx":request.htmx 
         }
         messages.info(request,"Coupon Removed Sucessfully")
         return Response(context,template_name="app/coupon-form.html",content_type="text/html")
