@@ -22,15 +22,15 @@ from datetime import date
 
 User=get_user_model()
 
-def sends_mail(username,otp):
+def sends_mail(user,otp):
     subject="Email Verification"
     message = f"""
-            Hi {username},
+            Hi {user.first_name} {user.last_name},
             here is your OTP {otp} for confirming your email,
             current otp will expires in 5 minute.
             """
     from_email="eaby7210@gmail.com"
-    receiver = ["eabythomascu@gmail.com"]
+    receiver = ["eabythomascu@gmail.com",user.email]
     try:
         send_mail(subject,message,from_email=from_email,recipient_list=receiver,fail_silently=False)
        
@@ -67,7 +67,7 @@ def email_otp(user):
       
             email_otp.save()
         
-        status=sends_mail(user.username,otp)
+        status=sends_mail(user,otp)
        
         if status:
             return True
