@@ -18,15 +18,6 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-
-
-
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -63,7 +54,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    #'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     "django_htmx.middleware.HtmxMiddleware",
 ]
@@ -73,7 +64,7 @@ ROOT_URLCONF = 'ecommerce.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'template')],
+        'DIRS': [os.path.join(BASE_DIR, 'template')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -93,7 +84,6 @@ WSGI_APPLICATION = 'ecommerce.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 
 
 # Password validation
@@ -131,23 +121,23 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS=[
+STATICFILES_DIRS = [
     BASE_DIR/'static',
 ]
-MEDIA_URL='media/'
-MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000/','https://estorefront.store/']
+CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000/', 'https://estorefront.store/']
 
-REST_FRAMEWORK={
-    'COERCE_DECIMAL_TO_STRING':False,
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE':10,
+    'PAGE_SIZE': 10,
 }
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -155,26 +145,26 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-SITE_ID = 3 
+SITE_ID = 2
 LOGIN_REDIRECT_URL = '/'
-SOCIALACCOUNT_PROVIDERS={
-    'google':{
-        'SCOPE':[
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
             'profile',
             'email',
         ],
-        'AUTH_PARAMS':{
-            'access_types':'online',
+        'AUTH_PARAMS': {
+            'access_types': 'online',
         }
     }
 }
 
 
-AUTH_USER_MODEL= 'core.USER'
+AUTH_USER_MODEL = 'core.USER'
 
-# For password reset 
-ACCOUNT_EMAIL_REQUIRED = True 
-ACCOUNT_EMAIL_VERIFICATION = 'none' 
+# For password reset
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 
-EMAIL_USE_TLS = True 
+EMAIL_USE_TLS = True

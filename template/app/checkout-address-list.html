@@ -46,3 +46,7 @@
 
 <button type="submit" id="order-submit" class="btn btn-dark align-self-end" hx-swap="outerHTML" hx-swap-oob="true"
     disabled>Place Order</button>
+
+<section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
+    {% include "messages.html" %}
+</section>
