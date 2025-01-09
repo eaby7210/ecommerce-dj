@@ -1,5 +1,6 @@
 from .common import *
 from dotenv import dotenv_values
+from urllib.parse import urlparse
 import os
 
 
@@ -17,17 +18,28 @@ if RENDER_EXTERNAL_HOSTNAME:
 SECRET_KEY = data.get('SECRET_KEY')
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': data.get('DB_ENGINE'),
+#         'NAME': data.get('DB_NAME'),
+#         'HOST': data.get('DB_HOST'),
+#         'USER': data.get('DB_USER'),
+#         'PASSWORD': data.get('DB_PASSWORD'),
+#         'port': data.get('DB_PORT')
+#     }
+# }
+
+tmpPostgres = urlparse(data.get("DATABASE_URL"))
 DATABASES = {
     'default': {
-        'ENGINE': data.get('DB_ENGINE'),
-        'NAME': data.get('DB_NAME'),
-        'HOST': data.get('DB_HOST'),
-        'USER': data.get('DB_USER'),
-        'PASSWORD': data.get('DB_PASSWORD'),
-        'port': data.get('DB_PORT')
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': tmpPostgres.path.replace('/', ''),
+        'USER': tmpPostgres.username,
+        'PASSWORD': tmpPostgres.password,
+        'HOST': tmpPostgres.hostname,
+        'PORT': 5432,
     }
 }
-
 
 EMAIL_HOST = data.get('EMAIL_HOST')
 EMAIL_PORT = data.get('EMAIL_PORT')
