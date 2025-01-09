@@ -29,7 +29,7 @@ SECRET_KEY = data.get('SECRET_KEY')
 #     }
 # }
 
-tmpPostgres = urlparse(data.get("DATABASE_URL"))
+tmpPostgres = urlparse(os.environ.get("DATABASE_URL"))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
