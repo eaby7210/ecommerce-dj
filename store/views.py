@@ -373,11 +373,14 @@ class OrderViewSet(ModelViewSet):
             # Order details
             elements.append(
                 Paragraph(f"Order ID: {instance.id}", getSampleStyleSheet()['BodyText']))
-            elements.append(Paragraph(f"Customer: {
-                            instance.customer.user.username}", getSampleStyleSheet()['BodyText']))
+            elements.append(
+                Paragraph(
+                    f"Customer: {instance.customer.user.username}",
+                    getSampleStyleSheet()['BodyText'])
+            )
             address = instance.address
-            address_string = f"{address.name}, {address.city}, {
-                address.state}, {address.pin}, {address.other_details}"
+            address_string = f"{address.name}, {address.city},\
+                {address.state}, {address.pin}, {address.other_details}"
 
             elements.append(
                 Paragraph(f"Address: {address_string}", getSampleStyleSheet()['BodyText']))
@@ -410,10 +413,14 @@ class OrderViewSet(ModelViewSet):
             # Order totals
             elements.append(
                 Paragraph(f"Total: {instance.total}", getSampleStyleSheet()['BodyText']))
-            elements.append(Paragraph(f"Total Discount: {
-                            instance.total_discount}", getSampleStyleSheet()['BodyText']))
-            elements.append(Paragraph(f"Grand Total: {
-                            instance.total - instance.total_discount}", getSampleStyleSheet()['BodyText']))
+            elements.append(
+                Paragraph(
+                    f"Total Discount: {instance.total_discount}",
+                    getSampleStyleSheet()['BodyText']))
+            elements.append(
+                Paragraph(
+                    f"Grand Total: {instance.total - instance.total_discount}",
+                    getSampleStyleSheet()['BodyText']))
 
             # Build PDF
             doc.build(elements)
@@ -507,8 +514,9 @@ class OrderViewSet(ModelViewSet):
                     product.save()
                 instance.order_status = 'CA'
                 instance.save()
-                messages.info(request, f"Order{
-                              instance.id} cancelled successfully")
+                messages.info(
+                    request,
+                    f"Order{instance.id} cancelled successfully")
 
             elif mode == "return":
                 itemid = request.data.get('itemid', None)
@@ -642,8 +650,9 @@ class CheckCoupon(APIView):
                 'discount_amt': discount_amt,
                 'final_total': final_total
             }
-            messages.success(request, f"Coupon {
-                             coupon.name} applied successfully.")
+            messages.success(
+                request,
+                f"Coupon {coupon.name} applied successfully.")
             return Response(context, template_name="app/coupon-details.html", content_type='text/html')
         except Coupon.DoesNotExist:
             messages.warning(request, "Please Enter a valid Coupon code")
