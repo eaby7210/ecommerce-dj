@@ -15,7 +15,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = data.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 
 # DATABASES = {
@@ -41,11 +41,11 @@ DATABASES = {
     }
 }
 
-EMAIL_HOST = data.get('EMAIL_HOST')
-EMAIL_PORT = data.get('EMAIL_PORT')
-EMAIL_HOST_USER = data.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = data.get('EMAIL_HOST_PASSWORD')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 # razorpar
-RAZORPAY_ID = data.get('RAZORPAY_ID')
-RAZORPAY_ACCOUNT_ID = data.get('RAZORPAY_ACCOUNT_ID')
+RAZORPAY_ID = os.environ.get('RAZORPAY_ID')
+RAZORPAY_ACCOUNT_ID = os.environ.get('RAZORPAY_ACCOUNT_ID')
