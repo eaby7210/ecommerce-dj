@@ -735,8 +735,8 @@ class OrderViewSet(ModelViewSet):
 
                 elif item.status == 'S':
                     item.status = "D"
-                    message = f"Item {
-                        item.product.title} has delivered successfully"
+                    message = f"Item {item.product.title}\
+                         delivered successfully"
                 elif item.status == 'P':
                     item.status = 'S'
                     message = f"Item {item.product.title}\
