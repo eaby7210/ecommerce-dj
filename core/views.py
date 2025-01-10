@@ -491,8 +491,9 @@ class AddressViewSet(ModelViewSet, AdressPagination):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        messages.warning(request, f"Address: {
-                         instance.name} deleted Succesfully")
+        messages.warning(
+            request,
+            f"Address: {instance.name} deleted Succesfully")
         if instance.primary == True:
             address = self.get_queryset()[0]
             address.primary = True

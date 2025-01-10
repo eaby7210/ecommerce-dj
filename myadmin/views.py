@@ -95,10 +95,15 @@ class Dashboard(APIView):
         elements.append(Spacer(1, 0.5 * inch))
 
         # Total and average order value
-        elements.append(Paragraph(f"Total Order Value: {
-                        context['total_order_value']}", styles['BodyText']))
-        elements.append(Paragraph(f"Average Order Value: {
-                        context['average_order_value']}", styles['BodyText']))
+        elements.append(
+            Paragraph(
+                f"Total Order Value: {context['total_order_value']}",
+                styles['BodyText']
+            ))
+        elements.append(
+            Paragraph(
+                f"Average Order Value: {context['average_order_value']}",
+                styles['BodyText']))
         elements.append(Spacer(1, 0.5 * inch))
 
         # Payment method table
@@ -112,10 +117,17 @@ class Dashboard(APIView):
         elements.append(Spacer(1, 0.5 * inch))
 
         # Coupon usage
-        elements.append(Paragraph(f"Orders with coupons applied: {
-                        context['orders_with_coupons']}", styles['BodyText']))
-        elements.append(Paragraph(f"Orders without coupons applied: {
-                        context['orders_without_coupons']}", styles['BodyText']))
+        elements.append(
+            Paragraph(
+                f"Orders with coupons applied:\
+                    {context['orders_with_coupons']}",
+                styles['BodyText']))
+        elements.append(
+            Paragraph(
+                f"Orders without coupons applied:\
+                    {context['orders_without_coupons']}",
+                styles['BodyText']
+            ))
         elements.append(Spacer(1, 0.5 * inch))
 
         # Orders per customer table
@@ -345,7 +357,7 @@ class UserViewSet(ModelViewSet):
 
         if serializer.is_valid():
             serializer.save()
-            messages.success(request, f"User details added successfully")
+            messages.success(request, "User details added successfully")
             return redirect('admin-users-list')
         else:
             errors = [f"{field} =>{error[0]}" for field,
@@ -718,8 +730,8 @@ class OrderViewSet(ModelViewSet):
             with transaction.atomic():
                 if item.status == 'RR':
                     item.status = "RA"
-                    message = f"Return has been Approved for item {
-                        item.product.title}."
+                    message = f"Return has been Approved for item\
+                        {item.product.title}."
 
                 elif item.status == 'S':
                     item.status = "D"
@@ -727,8 +739,8 @@ class OrderViewSet(ModelViewSet):
                         item.product.title} has delivered successfully"
                 elif item.status == 'P':
                     item.status = 'S'
-                    message = f"Item {
-                        item.product.title} has shipped successfully"
+                    message = f"Item {item.product.title}\
+                        shipped successfully"
                 elif item.status == "RA":
                     item.status = "RE"
                     product = Product.objects.get(id=item.product_id)
@@ -743,8 +755,8 @@ class OrderViewSet(ModelViewSet):
                         customer=customer, order=instance, amount=item_total-item_discount, transaction_type='refund')
                     customer.wallet_balance += item_total-item_discount
                     customer.save()
-                    message = f"Item {
-                        item.product.title} has returned successfully.Amount credited to Customer wallet"
+                    message = f"Item {item.product.title} has returned\
+                        successfully.Amount credited to Customer wallet"
             item.save()
             messages.info(request, message)
             item_serializer = OrderItemSerializer(item)
@@ -847,8 +859,9 @@ class CouponViewSet(ModelViewSet):
             instance, data=request.data, partial=partial)
         if serializer.is_valid():
             self.perform_update(serializer)
-            messages.success(request, f"Coupoun {
-                             instance.id} Updated Successfully")
+            messages.success(
+                request,
+                f"Coupoun {instance.id} Updated Successfully")
             if getattr(instance, '_prefetched_objects_cache', None):
                 # If 'prefetch_related' has been applied to a queryset, we need to
                 # forcibly invalidate the prefetch cache on the instance.
