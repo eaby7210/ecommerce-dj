@@ -3,12 +3,9 @@
 
 {% block content %}
 <section class="container mt-2">
-
     <div class="d-flex my-3 justify-content-between">
         <h3 class="">Your Cart</h3>
         {% if cart_count != 0 %}
-
-
         <a href="{%url 'checkout'%}" type="button" id="checkbtn" class="btn btn-dark ">Go To Checkout</a>
         {% endif %}
     </div>
