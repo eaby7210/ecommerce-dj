@@ -2,3 +2,7 @@ git
 .env
 media/
 prod.py
+static/
+
+assets
+*.sqlite3

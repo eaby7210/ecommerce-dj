@@ -6,7 +6,7 @@
 
         <div class="toast show align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
             aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
-            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,7000)">
             <div class="d-flex">
                 <div class="toast-body fs-5 fw-semibold">
                     {{message}}
@@ -22,7 +22,7 @@
 
         <div class="toast show align-items-center text-bg-dark text-success border-0" role="alert" aria-live="assertive"
             aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
-            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,7000)">
             <div class="d-flex">
                 <div class="toast-body fs-5 fw-semibold">
                     {{message}}
@@ -36,7 +36,7 @@
         {% elif message.tags == 'error' %}
         <div class="toast show align-items-center text-bg-danger text-white border-0" role="alert" aria-live="assertive"
             aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
-            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,7000)">
             <div class="d-flex">
                 <div class="toast-body fs-5 fw-semibold">
                     {{message}}
@@ -50,7 +50,7 @@
         {% elif message.tags == 'warning' %}
         <div class="toast show align-items-center text-bg-warning border-0" role="alert" aria-live="assertive"
             aria-atomic="true" x-data="{dismissed{{ forloop.counter }}:false}" x-show="!dismissed{{ forloop.counter }}"
-            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,5000)">
+            x-init="setTimeout(()=> dismissed{{ forloop.counter }}=true,7000)">
             <div class="d-flex">
                 <div class="toast-body fs-5 fw-semibold">
                     {{message}}

@@ -7,7 +7,7 @@
 {% block content %}
 <div class="container">
     <form id="updateUserForm" class="form-horizontal" data-update-url="{% url 'admin-brand-detail' brand.id %}"
-        enctype="multipart/form-data">
+        enctype="multipart/form-data" hx-encoding="multipart/form-data">
         <fieldset>
             {% render_form serializer %}
 

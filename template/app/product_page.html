@@ -160,29 +160,31 @@
                                 {% endif %}
 
                             </div>
-                            {% if product.inventory == 0 %}
-                            {%else%}
-                            {% if product.cart_items.0.quantity %}
-                            <button hx-post="{%url 'u-cart-list'%}" hx-trigger="click" hx-target="#productcontrols"
-                                hx-vals='{"quantity":1,"product_id":{{product.id}},"mode":"add","in":"detail"}'
-                                type="button" class="shadow btn btn-dark col-4">Add to
-                                cart
-                                ({{product.cart_items.0.quantity}})</button>
-                            {%else%}
-                            <button type="button" hx-post="{%url 'u-cart-list'%}" hx-trigger="click"
-                                hx-target="#productcontrols"
-                                hx-vals='{"quantity":1,"product_id":{{product.id}},"mode":"add","in":"detail"}'
-                                class="shadow btn btn-dark col-4">Add to
-                                cart</button>
-                            {% endif %}
-                            <div class="block quantity col-4">
-                                <input type="number" class="form-control" id="cart_quantity" min="0" max="5"
-                                    placeholder="Quantity" name="cart_quantity">
+                            <div class='col-8 d-flex justify-content-between' id='cartcontrolls'>
+                                {% if product.inventory == 0 %}
+                                {%else%}
+                                {% if product.cart_items.0.quantity %}
+                                <button hx-post="{%url 'u-cart-list'%}" hx-trigger="click" hx-target="#cartcontrolls"
+                                    hx-vals='{"quantity":1,"product_id":{{product.id}},"mode":"add","in":"detail"}'
+                                    type="button" class="shadow btn btn-dark col-5">Add to
+                                    cart
+                                    ({{product.cart_items.0.quantity}})</button>
+                                {%else%}
+                                <button type="button" hx-post="{%url 'u-cart-list'%}" hx-trigger="click"
+                                    hx-target="#cartcontrolls"
+                                    hx-vals='{"quantity":1,"product_id":{{product.id}},"mode":"add","in":"detail"}'
+                                    class="shadow btn btn-dark col-5">Add to
+                                    cart</button>
+                                {% endif %}
+                                <div class="block quantity col-5">
+                                    <input hx-post="{%url 'u-cart-list'%}" name="quantity" hx-trigger="keyup delay:1000"
+                                        hx-target="#cartcontrolls"
+                                        hx-vals='{"mode": "update","product_id":{{product.id}},"in":"detail"}'
+                                        type="number" id="cart_quantity" class="form-control fs-5 text-center"
+                                        placeholder="Custom Quantity" aria-label="Quantity">
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
-
-
-
                         </div>
                     </div>
 

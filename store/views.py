@@ -270,7 +270,7 @@ class CartViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         data = {key: value for key, value in request.data.items()}
         mode = data.pop('mode')
-
+        page = data.pop('in', None)
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             instance, message = serializer.save(mode=mode)
@@ -280,8 +280,17 @@ class CartViewSet(ModelViewSet):
             context = {
                 "item": cart
             }
-            response = Response(
-                context, template_name="app/cart-list.html", content_type="text/html")
+            if page == 'detail':
+                response = Response(
+                    context,
+                    template_name="app/cart-add-detailpage.html",
+                    content_type="text/html")
+            else:
+                response = Response(
+                    context,
+                    template_name="app/cart-list.html",
+                    content_type="text/html"
+                )
             return response
         else:
             messages.error(request, "Error in updating quantity")

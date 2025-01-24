@@ -1,10 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -o errexit
 
-pip install -r requirements.txt
 python manage.py collectstatic --no-input
-
 python manage.py migrate
-python manage.py create_admin
-python manage.py google_site_setup
+gunicorn --bind 0.0.0.0:8000 ecommerce.wsgi:application

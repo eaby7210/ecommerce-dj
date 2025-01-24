@@ -1,15 +1,13 @@
-<div class="col-3">
-    <a href="#" class="btn btn-dark  tex-center ">Wishlist</a>
-</div>
-
-<button id="addcart{{product.id}}" hx-post="{%url 'u-cart-list'%}" hx-target="#productcontrols"
+<button id="addcart{{product.id}}" hx-post="{%url 'u-cart-list'%}" hx-target="#cartcontrolls"
     hx-vals='{"quantity":1,"product_id":{{item.product.id}},"mode":"add","in":"detail"}' type="button"
-    class="shadow btn btn-dark col-4">Add to
+    class="shadow btn btn-dark col-5">Add to
     cart
     ({{item.quantity}})</button>
-<div class="block quantity col-3">
-    <input type="number" class="form-control" id="cart_quantity" min="0" max="5" placeholder="Quantity"
-        name="cart_quantity">
+<div class="block quantity col-5">
+
+    <input hx-put="/cart/{{item.id}}/" name="quantity" hx-trigger="keyup delay:1000" hx-target="#cartcontrolls"
+        hx-vals='{"mode": "update","product_id":{{item.product.id}},"in":"detail"}' type="number" id="cart_quantity"
+        class="form-control fs-5 text-center" placeholder="Custom Quantity" aria-label="Quantity">
 </div>
 
 <section id="messages-section" hx-swap="innerHTML" hx-swap-oob="true">
